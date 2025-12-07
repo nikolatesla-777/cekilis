@@ -2,17 +2,20 @@
 
 import { createAndRunDraw } from '@/actions/quick-draw'
 import { useState, useEffect } from 'react'
-import { Trophy, Users, Trash2, Shuffle, AlertCircle, Play, Sparkles } from 'lucide-react'
+import { Trophy, Users, Trash2, Shuffle, AlertCircle, Play, Sparkles, Eye, Pencil, FileText } from 'lucide-react'
 
 export default function Home() {
     const [loading, setLoading] = useState(false)
     const [participantText, setParticipantText] = useState('')
     const [lineCount, setLineCount] = useState(0)
+    const [isEditing, setIsEditing] = useState(true)
 
     // Update count when text changes
     useEffect(() => {
         const lines = participantText.split(/\r?\n/).filter(line => line.trim() !== '')
         setLineCount(lines.length)
+        // Auto-switch to view mode if line count is high (> 20) to show columns effect immediately
+        if (lines.length > 20) setIsEditing(false)
     }, [participantText])
 
     async function handleSubmit(formData) {
@@ -27,18 +30,21 @@ export default function Home() {
     const clearList = () => {
         if (confirm('Listeyi temizlemek istediğinize emin misiniz?')) {
             setParticipantText('')
+            setIsEditing(true)
         }
     }
 
     const addSampleData = () => {
-        const samples = "Ahmet Yılmaz\nAyşe Demir\nMehmet Kaya\nFatma Çelik\nAli Veli\nZeynep Şahin\nMustafa Öztürk\nElif Arslan"
+        // Generate more data to demonstrate columns
+        const baseSamples = ["Ahmet Yılmaz", "Ayşe Demir", "Mehmet Kaya", "Fatma Çelik", "Ali Veli", "Zeynep Şahin", "Mustafa Öztürk", "Elif Arslan", "Burak Yılmaz", "Ceren Karaca"]
+        const samples = Array(5).fill(baseSamples).flat().join('\n')
         setParticipantText(prev => prev ? prev + '\n' + samples : samples)
     }
 
     return (
-        <main className="min-h-screen bg-[#020617] text-white selection:bg-yellow-500/30 py-12 px-4">
+        <main className="min-h-screen bg-[#020617] text-white selection:bg-yellow-500/30 py-8 px-4 md:px-8">
 
-            <div className="w-full max-w-2xl mx-auto space-y-10">
+            <div className="w-full max-w-[95%] mx-auto space-y-12">
 
                 {/* Header */}
                 <div className="text-center space-y-4">
@@ -47,23 +53,22 @@ export default function Home() {
                         <span>Resmi Çekiliş Aracı</span>
                     </div>
                     <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-white">Çekiliş<span className="text-yellow-500">Pro</span></h1>
-                    <p className="text-slate-400 text-lg">Hızlı, Şeffaf ve Güvenilir Çekiliş Yapın</p>
                 </div>
 
-                <form action={handleSubmit} className="space-y-8">
+                <form action={handleSubmit} className="space-y-12">
 
-                    {/* SECTION 1: SETTINGS */}
-                    <div className="bg-slate-900 border border-white/10 rounded-2xl p-6 md:p-8 shadow-2xl">
-                        <div className="flex flex-col items-center gap-3 mb-6 pb-4 border-b border-white/5">
-                            <div className="bg-yellow-500 p-2 rounded-lg text-slate-900">
-                                <Trophy size={24} fill="currentColor" />
+                    {/* SECTION 1: SETTINGS (Centered & Compact) */}
+                    <div className="w-full max-w-3xl mx-auto bg-slate-900 border border-white/10 rounded-2xl p-8 shadow-2xl">
+                        <div className="flex flex-col items-center gap-3 mb-8 pb-6 border-b border-white/5">
+                            <div className="bg-yellow-500 p-2.5 rounded-xl text-slate-900 shadow-lg shadow-yellow-500/20">
+                                <Trophy size={28} fill="currentColor" />
                             </div>
-                            <h2 className="text-xl font-bold text-white text-center">1. Çekiliş Ayarları</h2>
+                            <h2 className="text-2xl font-bold text-white text-center">Çekiliş Ayarları</h2>
                         </div>
 
-                        <div className="grid md:grid-cols-2 gap-6">
-                            <div className="space-y-2 text-center">
-                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                        <div className="grid md:grid-cols-2 gap-8">
+                            <div className="space-y-3 text-center">
+                                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">
                                     Başlık
                                 </label>
                                 <input
@@ -71,12 +76,12 @@ export default function Home() {
                                     name="title"
                                     placeholder="Örn: 10.000 TL Ödül"
                                     required
-                                    className="w-full bg-[#020617] border border-white/10 rounded-xl px-4 py-4 text-white focus:outline-none focus:border-yellow-500 transition-all font-medium placeholder:text-slate-700 text-center"
+                                    className="w-full bg-[#020617] border border-white/10 rounded-xl px-4 py-4 text-white focus:outline-none focus:border-yellow-500 transition-all font-bold text-lg placeholder:text-slate-700 text-center shadow-inner"
                                 />
                             </div>
 
-                            <div className="space-y-2 text-center">
-                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                            <div className="space-y-3 text-center">
+                                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">
                                     Kazanan Sayısı
                                 </label>
                                 <div className="relative">
@@ -85,9 +90,9 @@ export default function Home() {
                                         name="winnerCount"
                                         defaultValue="1"
                                         min="1"
-                                        className="w-full bg-[#020617] border border-white/10 rounded-xl px-4 py-4 text-white focus:outline-none focus:border-yellow-500 transition-all font-bold text-xl text-center"
+                                        className="w-full bg-[#020617] border border-white/10 rounded-xl px-4 py-4 text-white focus:outline-none focus:border-yellow-500 transition-all font-black text-2xl text-center shadow-inner"
                                     />
-                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-500 pointer-events-none font-bold">
+                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-500 pointer-events-none font-bold tracking-wider">
                                         KİŞİ
                                     </div>
                                 </div>
@@ -95,73 +100,123 @@ export default function Home() {
                         </div>
                     </div>
 
-                    {/* SECTION 2: PARTICIPANTS */}
+                    {/* SECTION 2: PARTICIPANTS (Full Width) */}
                     <div className="bg-slate-900 border border-white/10 rounded-2xl p-6 md:p-8 shadow-2xl">
-                        <div className="flex flex-col items-center justify-between mb-6 pb-4 border-b border-white/5 gap-4">
-                            <div className="flex flex-col items-center gap-3">
-                                <div className="bg-blue-500/10 p-2 rounded-lg text-blue-400">
+                        <div className="flex flex-col md:flex-row items-center justify-between mb-6 pb-4 border-b border-white/5 gap-4">
+                            <div className="flex items-center gap-4">
+                                <div className="bg-blue-500/10 p-2.5 rounded-xl text-blue-400">
                                     <Users size={24} />
                                 </div>
-                                <h2 className="text-xl font-bold text-white text-center">2. Katılımcılar</h2>
+                                <div>
+                                    <h2 className="text-xl font-bold text-white">Katılımcı Listesi</h2>
+                                    <p className="text-xs text-slate-400 mt-1">ID Listesini yönetin</p>
+                                </div>
                             </div>
-                            <div className="text-sm font-mono bg-white/5 px-3 py-1 rounded-lg text-slate-400">
-                                {lineCount} Kişi
+
+                            <div className="flex items-center gap-3 bg-[#020617]/50 p-1.5 rounded-lg border border-white/5">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsEditing(true)}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${isEditing ? 'bg-blue-500 text-white shadow-lg' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                                >
+                                    <Pencil size={14} />
+                                    Düzenle
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsEditing(false)}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${!isEditing ? 'bg-blue-500 text-white shadow-lg' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                                >
+                                    <Eye size={14} />
+                                    Önizle (Kolonlu)
+                                </button>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                                <div className="text-sm font-mono bg-white/5 border border-white/5 px-4 py-2 rounded-lg text-slate-300 min-w-[100px] text-center">
+                                    <span className="font-bold text-white">{lineCount}</span> Kişi
+                                </div>
+                                <div className="flex gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={addSampleData}
+                                        className="p-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors border border-white/5"
+                                        title="Örnek Veri Ekle"
+                                    >
+                                        <Shuffle size={18} />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={clearList}
+                                        className="p-2.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-colors border border-red-500/10"
+                                        title="Listeyi Temizle"
+                                    >
+                                        <Trash2 size={18} />
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
-                        <div className="space-y-4">
-                            <textarea
-                                name="participants"
-                                value={participantText}
-                                onChange={(e) => setParticipantText(e.target.value)}
-                                placeholder="İsimleri buraya yapıştırın (Her satıra bir isim)..."
-                                required
-                                className="w-full h-64 bg-[#020617] border border-white/10 rounded-xl p-5 text-base text-slate-300 placeholder:text-slate-700 focus:outline-none focus:border-blue-500 transition-all resize-y font-mono leading-relaxed text-center"
-                                spellCheck={false}
-                            ></textarea>
+                        {/* Content Area */}
+                        <div className="w-full h-[600px] bg-[#020617] border border-white/10 rounded-xl overflow-hidden relative group">
+                            {isEditing ? (
+                                <textarea
+                                    name="participants"
+                                    value={participantText}
+                                    onChange={(e) => setParticipantText(e.target.value)}
+                                    placeholder="Her satıra bir ID/İsim gelecek şekilde yapıştırın..."
+                                    className="w-full h-full bg-transparent p-6 text-base text-slate-300 placeholder:text-slate-700 focus:outline-none resize-none font-mono leading-relaxed"
+                                    spellCheck={false}
+                                    autoFocus
+                                ></textarea>
+                            ) : (
+                                <div className="w-full h-full p-6 overflow-y-auto custom-scrollbar">
+                                    {participantText ? (
+                                        <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 2xl:columns-6 gap-8 space-y-1">
+                                            {participantText.split(/\r?\n/).filter(l => l.trim()).map((line, i) => (
+                                                <div key={i} className="break-inside-avoid text-xs font-mono text-slate-400 hover:text-white py-0.5 border-b border-white/5 truncate px-2 rounded hover:bg-white/5 transition-colors">
+                                                    <span className="text-slate-600 mr-2 select-none">{i + 1}.</span>
+                                                    {line}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center h-full text-slate-600 gap-4">
+                                            <FileText size={48} className="opacity-20" />
+                                            <p>Henüz katılımcı eklenmedi.</p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
 
-                            <div className="flex gap-3 justify-center">
-                                <button
-                                    type="button"
-                                    onClick={addSampleData}
-                                    className="text-xs font-bold flex items-center gap-2 px-4 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
-                                >
-                                    <Shuffle size={14} />
-                                    Örnek Liste
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={clearList}
-                                    className="text-xs font-bold flex items-center gap-2 px-4 py-2.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-colors"
-                                >
-                                    <Trash2 size={14} />
-                                    Temizle
-                                </button>
+                            {/* Mode Indicator Toast */}
+                            <div className="absolute bottom-4 right-4 text-[10px] font-bold uppercase tracking-wider text-slate-600 bg-[#020617] border border-white/10 px-3 py-1.5 rounded-full pointer-events-none opacity-50 group-hover:opacity-100 transition-opacity">
+                                {isEditing ? 'Düzenleme Modu' : 'İzleme Modu'}
                             </div>
                         </div>
                     </div>
 
                     {/* SECTION 3: ACTION */}
-                    <div className="pt-4">
+                    <div className="w-full max-w-3xl mx-auto pt-4">
                         <button
                             type="submit"
                             disabled={loading || lineCount === 0}
-                            className="w-full bg-yellow-500 hover:bg-yellow-400 text-slate-900 font-extrabold text-xl py-6 rounded-2xl transition-all shadow-xl hover:shadow-yellow-500/20 flex items-center justify-center gap-4 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full bg-yellow-500 hover:bg-yellow-400 text-slate-900 font-extrabold text-2xl py-8 rounded-2xl transition-all shadow-[0_0_40px_rgba(234,179,8,0.2)] hover:shadow-[0_0_60px_rgba(234,179,8,0.4)] flex items-center justify-center gap-4 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed group"
                         >
                             {loading ? (
                                 <>
-                                    <Sparkles className="animate-spin" size={24} />
-                                    <span>ÇEKİLİŞ HAZIRLANIYOR...</span>
+                                    <Sparkles className="animate-spin" size={28} />
+                                    <span>HAZIRLANIYOR...</span>
                                 </>
                             ) : (
                                 <>
-                                    <Play size={28} fill="currentColor" />
+                                    <Play size={32} fill="currentColor" className="group-hover:scale-110 transition-transform" />
                                     <span>ÇEKİLİŞİ BAŞLAT</span>
                                 </>
                             )}
                         </button>
-                        <p className="text-center text-xs text-slate-600 mt-4">
-                            Butona bastığınızda sonuçlar şeffaf bir şekilde belirlenecektir.
+                        <p className="text-center text-sm text-slate-600 mt-6 font-medium">
+                            {lineCount > 0 ? `${lineCount} katılımcı ile çekiliş başlatılacak.` : 'Lütfen önce katılımcı listesini doldurun.'}
                         </p>
                     </div>
 
