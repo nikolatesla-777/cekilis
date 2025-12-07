@@ -57,20 +57,20 @@ export default function AdminLayout({ children }) {
                         <span className="text-sm font-medium text-slate-400">Sistem Aktif ve Çalışıyor</span>
                     </div>
                     <div className="flex items-center gap-4">
-                        <div className="h-10 w-10 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer">
-                            <Settings size={20} />
+                        <div className="min-h-screen bg-[#020617] text-white">
+                            {/* Simple Navbar for Admin */}
+                            <nav className="border-b border-white/5 bg-[#020617]/50 backdrop-blur-md sticky top-0 z-50">
+                                <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+                                    <span className="font-bold text-xl tracking-tight">
+                                        Çekiliş<span className="text-yellow-500">Pro</span>
+                                    </span>
+                                    <div className="text-xs text-slate-500 font-mono">Mobile Responsive v3.0</div>
+                                </div>
+                            </nav>
+
+                            <div className="w-full max-w-7xl mx-auto p-4 md:p-8">
+                                {children}
+                            </div>
                         </div>
-                    </div>
-                </header>
-
-                {/* Scrollable Page Content */}
-                <div className="flex-1 overflow-y-auto p-8">
-                    <div className="max-w-7xl mx-auto">
-                        {children}
-                    </div>
-                </div>
-            </main>
-        </div>
-    )
+                        )
 }
-
