@@ -54,16 +54,16 @@ export default function Home() {
 
                     {/* SECTION 1: SETTINGS */}
                     <div className="bg-slate-900 border border-white/10 rounded-2xl p-6 md:p-8 shadow-2xl">
-                        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/5">
+                        <div className="flex flex-col items-center gap-3 mb-6 pb-4 border-b border-white/5">
                             <div className="bg-yellow-500 p-2 rounded-lg text-slate-900">
-                                <Trophy size={20} fill="currentColor" />
+                                <Trophy size={24} fill="currentColor" />
                             </div>
-                            <h2 className="text-xl font-bold text-white">1. Çekiliş Ayarları</h2>
+                            <h2 className="text-xl font-bold text-white text-center">1. Çekiliş Ayarları</h2>
                         </div>
 
                         <div className="grid md:grid-cols-2 gap-6">
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">
+                            <div className="space-y-2 text-center">
+                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">
                                     Başlık
                                 </label>
                                 <input
@@ -71,12 +71,12 @@ export default function Home() {
                                     name="title"
                                     placeholder="Örn: 10.000 TL Ödül"
                                     required
-                                    className="w-full bg-[#020617] border border-white/10 rounded-xl px-4 py-4 text-white focus:outline-none focus:border-yellow-500 transition-all font-medium placeholder:text-slate-700"
+                                    className="w-full bg-[#020617] border border-white/10 rounded-xl px-4 py-4 text-white focus:outline-none focus:border-yellow-500 transition-all font-medium placeholder:text-slate-700 text-center"
                                 />
                             </div>
 
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">
+                            <div className="space-y-2 text-center">
+                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">
                                     Kazanan Sayısı
                                 </label>
                                 <div className="relative">
@@ -97,12 +97,12 @@ export default function Home() {
 
                     {/* SECTION 2: PARTICIPANTS */}
                     <div className="bg-slate-900 border border-white/10 rounded-2xl p-6 md:p-8 shadow-2xl">
-                        <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/5">
-                            <div className="flex items-center gap-3">
+                        <div className="flex flex-col items-center justify-between mb-6 pb-4 border-b border-white/5 gap-4">
+                            <div className="flex flex-col items-center gap-3">
                                 <div className="bg-blue-500/10 p-2 rounded-lg text-blue-400">
-                                    <Users size={20} />
+                                    <Users size={24} />
                                 </div>
-                                <h2 className="text-xl font-bold text-white">2. Katılımcılar</h2>
+                                <h2 className="text-xl font-bold text-white text-center">2. Katılımcılar</h2>
                             </div>
                             <div className="text-sm font-mono bg-white/5 px-3 py-1 rounded-lg text-slate-400">
                                 {lineCount} Kişi
@@ -116,11 +116,11 @@ export default function Home() {
                                 onChange={(e) => setParticipantText(e.target.value)}
                                 placeholder="İsimleri buraya yapıştırın (Her satıra bir isim)..."
                                 required
-                                className="w-full h-64 bg-[#020617] border border-white/10 rounded-xl p-5 text-base text-slate-300 placeholder:text-slate-700 focus:outline-none focus:border-blue-500 transition-all resize-y font-mono leading-relaxed"
+                                className="w-full h-64 bg-[#020617] border border-white/10 rounded-xl p-5 text-base text-slate-300 placeholder:text-slate-700 focus:outline-none focus:border-blue-500 transition-all resize-y font-mono leading-relaxed text-center"
                                 spellCheck={false}
                             ></textarea>
 
-                            <div className="flex gap-3 justify-end">
+                            <div className="flex gap-3 justify-center">
                                 <button
                                     type="button"
                                     onClick={addSampleData}
