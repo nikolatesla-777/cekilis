@@ -1,4 +1,3 @@
-```javascript
 'use client'
 
 import { createAndRunDraw } from '@/actions/quick-draw'
@@ -57,16 +56,18 @@ export default function Home() {
                 const ws = wb.Sheets[wsname]
                 // Extract column A (or the first found column)
                 const data = XLSX.utils.sheet_to_json(ws, { header: 1 })
-                
+
                 // Flatten and clean data
                 const newParticipants = data.flat().filter(item => item && item.toString().trim() !== '').map(item => item.toString().trim())
-                
+
                 if (newParticipants.length > 0) {
                     setParticipantText(prev => {
                         const current = prev ? prev + '\n' : ''
                         return current + newParticipants.join('\n')
                     })
-                    alert(`${ newParticipants.length } katılımcı eklendi.`)
+                    // Auto switch to view mode for large imports
+                    setIsEditing(false)
+                    alert(`${newParticipants.length} katılımcı eklendi.`)
                 } else {
                     alert('Dosyada uygun veri bulunamadı.')
                 }
@@ -76,7 +77,7 @@ export default function Home() {
             }
         }
         reader.readAsBinaryString(file)
-        
+
         // Reset input
         e.target.value = null
     }
@@ -157,7 +158,7 @@ export default function Home() {
                                 <button
                                     type="button"
                                     onClick={() => setIsEditing(true)}
-                                    className={`flex items - center gap - 2 px - 4 py - 2 rounded - md text - sm font - medium transition - all ${ isEditing ? 'bg-blue-500 text-white shadow-lg' : 'text-slate-400 hover:text-white hover:bg-white/5' } `}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${isEditing ? 'bg-blue-500 text-white shadow-lg' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
                                 >
                                     <Pencil size={14} />
                                     Düzenle
@@ -165,7 +166,7 @@ export default function Home() {
                                 <button
                                     type="button"
                                     onClick={() => setIsEditing(false)}
-                                    className={`flex items - center gap - 2 px - 4 py - 2 rounded - md text - sm font - medium transition - all ${ !isEditing ? 'bg-blue-500 text-white shadow-lg' : 'text-slate-400 hover:text-white hover:bg-white/5' } `}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${!isEditing ? 'bg-blue-500 text-white shadow-lg' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
                                 >
                                     <Eye size={14} />
                                     Önizle (Kolonlu)
@@ -176,18 +177,18 @@ export default function Home() {
                                 <div className="text-sm font-mono bg-white/5 border border-white/5 px-4 py-2 rounded-lg text-slate-300 min-w-[100px] text-center">
                                     <span className="font-bold text-white">{lineCount}</span> Kişi
                                 </div>
-                                
+
                                 {/* Excel Upload Input */}
-                                <input 
-                                    type="file" 
-                                    accept=".xlsx, .xls" 
-                                    className="hidden" 
-                                    ref={fileInputRef} 
-                                    onChange={handleFileUpload} 
+                                <input
+                                    type="file"
+                                    accept=".xlsx, .xls"
+                                    className="hidden"
+                                    ref={fileInputRef}
+                                    onChange={handleFileUpload}
                                 />
 
                                 <div className="flex gap-2">
-                                     <button 
+                                    <button
                                         type="button"
                                         onClick={() => fileInputRef.current?.click()}
                                         className="p-2.5 rounded-lg bg-green-500/10 hover:bg-green-500/20 text-green-400 transition-colors border border-green-500/10"
@@ -217,35 +218,35 @@ export default function Home() {
 
                         {/* Content Area */}
                         <div className="w-full h-[600px] bg-[#020617] border border-white/10 rounded-xl overflow-hidden relative group">
-                            {isEditing ? (
-                                <textarea
-                                    name="participants"
-                                    value={participantText}
-                                    onChange={(e) => setParticipantText(e.target.value)}
-                                    placeholder="Her satıra bir ID/İsim gelecek şekilde yapıştırın veya Excel yükleyin..."
-                                    className="w-full h-full bg-transparent p-6 text-base text-slate-300 placeholder:text-slate-700 focus:outline-none resize-none font-mono leading-relaxed"
-                                    spellCheck={false}
-                                    autoFocus
-                                ></textarea>
-                            ) : (
-                                <div className="w-full h-full p-6 overflow-y-auto custom-scrollbar">
-                                    {participantText ? (
-                                        <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 2xl:columns-6 gap-8 space-y-1">
-                                            {participantText.split(/\r?\n/).filter(l => l.trim()).map((line, i) => (
-                                                <div key={i} className="break-inside-avoid text-xs font-mono text-slate-400 hover:text-white py-0.5 border-b border-white/5 truncate px-2 rounded hover:bg-white/5 transition-colors">
-                                                    <span className="text-slate-600 mr-2 select-none">{i + 1}.</span>
-                                                    {line}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <div className="flex flex-col items-center justify-center h-full text-slate-600 gap-4">
-                                            <FileText size={48} className="opacity-20" />
-                                            <p>Henüz katılımcı eklenmedi.</p>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
+
+                            {/* EDIT MODE: Textarea (Always in DOM, hidden when not editing) */}
+                            <textarea
+                                name="participants"
+                                value={participantText}
+                                onChange={(e) => setParticipantText(e.target.value)}
+                                placeholder="Her satıra bir ID/İsim gelecek şekilde yapıştırın veya Excel yükleyin..."
+                                className={`w-full h-full bg-transparent p-6 text-base text-slate-300 placeholder:text-slate-700 focus:outline-none resize-none font-mono leading-relaxed ${isEditing ? 'block' : 'hidden'}`}
+                                spellCheck={false}
+                            ></textarea>
+
+                            {/* VIEW MODE: Columns (Always in DOM, hidden when editing) */}
+                            <div className={`w-full h-full p-6 overflow-y-auto custom-scrollbar ${!isEditing ? 'block' : 'hidden'}`}>
+                                {participantText ? (
+                                    <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 2xl:columns-6 gap-8 space-y-1">
+                                        {participantText.split(/\r?\n/).filter(l => l.trim()).map((line, i) => (
+                                            <div key={i} className="break-inside-avoid text-xs font-mono text-slate-400 hover:text-white py-0.5 border-b border-white/5 truncate px-2 rounded hover:bg-white/5 transition-colors">
+                                                <span className="text-slate-600 mr-2 select-none">{i + 1}.</span>
+                                                {line}
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center h-full text-slate-600 gap-4">
+                                        <FileText size={48} className="opacity-20" />
+                                        <p>Henüz katılımcı eklenmedi.</p>
+                                    </div>
+                                )}
+                            </div>
 
                             {/* Mode Indicator Toast */}
                             <div className="absolute bottom-4 right-4 text-[10px] font-bold uppercase tracking-wider text-slate-600 bg-[#020617] border border-white/10 px-3 py-1.5 rounded-full pointer-events-none opacity-50 group-hover:opacity-100 transition-opacity">
@@ -274,7 +275,7 @@ export default function Home() {
                             )}
                         </button>
                         <p className="text-center text-sm text-slate-600 mt-6 font-medium">
-                            {lineCount > 0 ? `${ lineCount } katılımcı ile çekiliş başlatılacak.` : 'Lütfen önce katılımcı listesini doldurun.'}
+                            {lineCount > 0 ? `${lineCount} katılımcı ile çekiliş başlatılacak.` : 'Lütfen önce katılımcı listesini doldurun.'}
                         </p>
                     </div>
 
