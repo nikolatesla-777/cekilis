@@ -26,34 +26,42 @@ export async function createAndRunDraw(formData) {
 
         if (drawError) throw new Error('Çekiliş oluşturulamadı: ' + drawError.message)
 
-        // 2. Parse and Insert Participants
-        const lines = participantText.split(/\r?\n/).filter(line => line.trim() !== '')
-        const participants = lines.map(line => ({
-            draw_id: draw.id,
-            user_id: line.trim(), // Assuming simple names/IDs
-            name: line.trim()     // Use same for name for now
-        }))
+        // 3. Pick a Winner IMMEDIATELY for the Quick Draw
+        const winnerIndex = Math.floor(Math.random() * participants.length)
+        const winner = participants[winnerIndex]
 
-        if (participants.length === 0) throw new Error('En az 1 katılımcı girilmelidir.')
+        // 4. Update Draw with Winner
+        // We first need to get the participant ID. Since we just inserted them, 
+        // we can query by draw_id and user_id (assuming user_id is unique per draw logic we built)
+        // OR better: insert returns data.
 
-        const { error: partError } = await supabase
+        const { data: insertedParticipants, error: fetchError } = await supabase
             .from('participants')
-            .insert(participants)
+            .select('id')
+            .eq('draw_id', draw.id)
+            .eq('user_id', winner.user_id) // This might be risky if duplicates exist (though we filtered duplicates in client? No, client just split lines.)
+        // Actually, best to fetch ALL inserted for this draw to be safe and pick random one by index from DB results.
 
-        if (partError) throw new Error('Katılımcılar eklenemedi: ' + partError.message)
+        // Let's re-fetch all for this draw to be safe and truly random from DB perspective
+        const { data: allParticipants, error: allError } = await supabase
+            .from('participants')
+            .select('id')
+            .eq('draw_id', draw.id)
 
-        // 3. We do NOT pick the winner here immediately if we want the "Spinning" animation page.
-        // Usually "Çekilişi Yap" redirects to the draw page where the animation happens.
+        if (allError || !allParticipants?.length) throw new Error('Kazanan belirlenemedi (Veritabanı hatası)')
+
+        const selectedWinner = allParticipants[Math.floor(Math.random() * allParticipants.length)]
+
+        const { error: updateError } = await supabase
+            .from('draws')
+            .update({ winning_participant_id: selectedWinner.id })
+            .eq('id', draw.id)
+
+        if (updateError) throw new Error('Kazanan kaydedilemedi.')
 
         revalidatePath('/')
-        redirect(`/admin/draws/${draw.id}`) // Redirect to the draw page (which we need to simplify too?)
-        // User said "admin panelinde yapmanı istemiyorum". 
-        // Maybe they want to go to the PUBLIC page?
-        // "Kullanıcıların göreceği şekilde olsun"
-
-        // Let's redirect to the public page or a simplified result page.
-        // For now, redirecting to admin detail page is safest to manage it, 
-        // BUT I must simplify that page too.
+        // Success!
+        return { success: true, drawId: draw.id }
 
     } catch (error) {
         console.error('Quick Draw Error:', error)

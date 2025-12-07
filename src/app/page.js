@@ -5,7 +5,10 @@ import { useState, useEffect, useRef } from 'react'
 import { Trophy, Users, Trash2, Shuffle, AlertCircle, Play, Sparkles, Eye, Pencil, FileText, FileSpreadsheet } from 'lucide-react'
 import * as XLSX from 'xlsx'
 
+import { useRouter } from 'next/navigation'
+
 export default function Home() {
+    const router = useRouter()
     const [loading, setLoading] = useState(false)
     const [participantText, setParticipantText] = useState('')
     const [lineCount, setLineCount] = useState(0)
@@ -26,6 +29,8 @@ export default function Home() {
         if (res?.error) {
             alert(res.error)
             setLoading(false)
+        } else if (res?.success) {
+            router.push(`/draw/${res.drawId}`)
         }
     }
 

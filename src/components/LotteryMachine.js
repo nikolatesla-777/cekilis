@@ -34,8 +34,8 @@ export default function LotteryMachine({ drawId, initialParticipants, winningPar
 
         // Animation Variables
         let counter = 0
-        const totalSpins = 60 // Longer, smoother spin
-        let speed = 40 // Faster start
+        const totalSpins = 300 // Increased from 60 to ~300 for 12-15s duration
+        let speed = 50 // Slower start
 
         const spin = () => {
             // Pick random name
