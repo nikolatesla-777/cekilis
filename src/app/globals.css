@@ -17,9 +17,3 @@ body {
   font-family: var(--font-inter), sans-serif;
   overflow-x: hidden;
 }
-
-@layer utilities {
-  .text-gold-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-yellow-200 via-yellow-500 to-yellow-200;
-  }
-}
