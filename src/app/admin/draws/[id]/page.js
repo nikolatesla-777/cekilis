@@ -34,23 +34,29 @@ export default async function DrawDetailPage({ params }) {
 
     return (
         <div>
-            <div className="mb-8">
-                <Link href="/admin" className="text-slate-400 hover:text-white mb-2 inline-block">&larr; Geri Dön</Link>
-                <div className="flex items-center justify-between">
+            <div className="mb-10">
+                <Link href="/admin" className="text-slate-400 hover:text-white mb-4 inline-flex items-center gap-2 text-sm font-medium transition-colors">
+                    &larr; Kontrol Paneline Dön
+                </Link>
+                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
                     <div>
-                        <h1 className="text-3xl font-bold text-white">{draw.title}</h1>
-                        <p className="text-slate-400 mt-1">
-                            {new Date(draw.draw_date).toLocaleDateString('tr-TR')} • {participantCount} Katılımcı
+                        <h1 className="text-4xl font-serif font-bold text-white tracking-tight">{draw.title}</h1>
+                        <p className="text-slate-400 mt-2 flex items-center gap-2 text-sm">
+                            <span className="bg-white/5 px-2 py-1 rounded text-slate-300 font-mono">
+                                {new Date(draw.draw_date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                            </span>
+                            <span className="text-slate-600">•</span>
+                            <span className="text-yellow-500 font-bold">{participantCount}</span> Katılımcı
                         </p>
                     </div>
                     {draw.winning_participant_id && (
-                        <div className="bg-green-500/10 border border-green-500/20 px-6 py-4 rounded-xl flex items-center gap-4">
-                            <div className="bg-green-500/20 p-3 rounded-full text-green-500">
-                                <Trophy size={24} />
+                        <div className="bg-gradient-to-r from-green-500/10 to-green-500/5 border border-green-500/20 px-8 py-4 rounded-2xl flex items-center gap-5 shadow-[0_0_20px_rgba(34,197,94,0.1)]">
+                            <div className="bg-green-500/20 p-3 rounded-xl text-green-400 shadow-inner">
+                                <Trophy size={28} strokeWidth={2} />
                             </div>
                             <div>
-                                <p className="text-green-500 text-sm font-bold uppercase tracking-wider">Kazanan Belirlendi</p>
-                                <p className="text-white font-bold text-lg">
+                                <p className="text-green-500 text-xs font-bold uppercase tracking-widest mb-1">Kazanan Belirlendi</p>
+                                <p className="text-white font-mono font-bold text-xl">
                                     {draw.winner?.user_id}
                                     {draw.winner?.name && <span className="text-slate-400 font-normal"> ({draw.winner?.name})</span>}
                                 </p>
@@ -63,13 +69,15 @@ export default async function DrawDetailPage({ params }) {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Left Column: Upload */}
                 <div className="lg:col-span-1 space-y-6">
-                    <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
-                        <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                            <Upload size={20} className="text-purple-400" />
+                    <div className="bg-slate-900/40 border border-white/5 rounded-2xl p-6 backdrop-blur-sm sticky top-28">
+                        <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-yellow-500/10 text-yellow-500">
+                                <Upload size={18} />
+                            </div>
                             Katılımcı Yükle
                         </h2>
-                        <p className="text-sm text-slate-400 mb-4">
-                            Excel dosyası (.xlsx) yükleyerek katılımcıları ekleyin. Dosyada "user_id" sütunu olması önerilir.
+                        <p className="text-sm text-slate-400 mb-6 leading-relaxed">
+                            Excel dosyası (.xlsx) yükleyerek katılımcıları toplu olarak ekleyebilirsiniz. Dosyada "user_id" ve opsiyonel "name" sütunu bulunmalıdır.
                         </p>
                         {/* Upload Component will go here */}
                         <ParticipantManager drawId={draw.id} mode="upload" />
@@ -78,10 +86,12 @@ export default async function DrawDetailPage({ params }) {
 
                 {/* Right Column: List & Search & Pick Winner */}
                 <div className="lg:col-span-2">
-                    <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 h-full">
-                        <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                            <Users size={20} className="text-purple-400" />
-                            Katılımcı Yönetimi
+                    <div className="bg-slate-900/40 border border-white/5 rounded-2xl p-6 min-h-[500px] backdrop-blur-sm">
+                        <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400">
+                                <Users size={18} />
+                            </div>
+                            Katılımcı Listesi ve İşlemler
                         </h2>
 
                         {/* Search & List Component */}

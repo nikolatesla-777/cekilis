@@ -1,24 +1,32 @@
 import { createDraw } from '@/actions/draw-actions'
-import { ArrowLeft, Save } from 'lucide-react'
+import { ArrowLeft, Save, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 
 export default function NewDrawPage() {
     return (
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-2xl mx-auto py-8">
             <Link
                 href="/admin"
-                className="inline-flex items-center gap-2 text-slate-400 hover:text-white mb-6 transition-colors"
+                className="inline-flex items-center gap-2 text-slate-400 hover:text-white mb-8 transition-colors text-sm font-medium"
             >
-                <ArrowLeft size={18} />
-                Panele Dön
+                <ArrowLeft size={16} />
+                Kontrol Paneline Dön
             </Link>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-8">
-                <h1 className="text-2xl font-bold text-white mb-6">Yeni Çekiliş Oluştur</h1>
+            <div className="bg-slate-900/40 border border-white/5 rounded-2xl p-8 backdrop-blur-sm shadow-2xl">
+                <div className="flex items-center gap-3 mb-8">
+                    <div className="p-3 bg-yellow-500/10 rounded-xl text-yellow-500">
+                        <Sparkles size={24} />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-bold text-white">Yeni Çekiliş Oluştur</h1>
+                        <p className="text-slate-400 text-sm">Katılımcıların heyecanla bekleyeceği yeni bir çekiliş başlatın.</p>
+                    </div>
+                </div>
 
                 <form action={createDraw} className="space-y-6">
                     <div>
-                        <label htmlFor="title" className="block text-sm font-medium text-slate-400 mb-2">
+                        <label htmlFor="title" className="block text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">
                             Çekiliş Başlığı
                         </label>
                         <input
@@ -27,12 +35,12 @@ export default function NewDrawPage() {
                             id="title"
                             required
                             placeholder="Örn: 10 Kişiye iPhone 15 Çekilişi"
-                            className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all placeholder:text-slate-600"
+                            className="w-full bg-slate-950/50 border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all placeholder:text-slate-600"
                         />
                     </div>
 
                     <div>
-                        <label htmlFor="date" className="block text-sm font-medium text-slate-400 mb-2">
+                        <label htmlFor="date" className="block text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">
                             Çekiliş Tarihi
                         </label>
                         <input
@@ -41,17 +49,19 @@ export default function NewDrawPage() {
                             id="date"
                             required
                             defaultValue={new Date().toISOString().split('T')[0]}
-                            className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all [color-scheme:dark]"
+                            className="w-full bg-slate-950/50 border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all [color-scheme:dark]"
                         />
                     </div>
 
-                    <button
-                        type="submit"
-                        className="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-4 rounded-lg transition-all flex items-center justify-center gap-2 mt-4"
-                    >
-                        <Save size={20} />
-                        Çekilişi Oluştur
-                    </button>
+                    <div className="pt-4">
+                        <button
+                            type="submit"
+                            className="w-full bg-yellow-500 hover:bg-yellow-400 text-slate-900 font-bold py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(234,179,8,0.2)] hover:shadow-[0_0_30px_rgba(234,179,8,0.4)] flex items-center justify-center gap-2 transform active:scale-[0.99]"
+                        >
+                            <Save size={20} strokeWidth={2.5} />
+                            ÇEKLİŞİ OLUŞTUR
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
