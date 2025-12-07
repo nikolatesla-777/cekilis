@@ -1,12 +1,18 @@
+import { Inter, Playfair_Display } from 'next/font/google'
+import './globals.css'
+
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
+const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair' })
+
 export const metadata = {
-    title: 'Çekiliş - Büyük Ödül Seni Bekliyor',
-    description: 'Günlük çekiliş heyecanına katıl!',
+    title: 'Resmi Çekiliş Sonuç Ekranı',
+    description: 'Kurumsal ve şeffaf çekiliş sistemi.',
 }
 
 export default function RootLayout({ children }) {
     return (
-        <html lang="tr" className="dark">
-            <body className="bg-slate-950 text-slate-50 antialiased min-h-screen selection:bg-purple-500/30">
+        <html lang="tr" className={`${inter.variable} ${playfair.variable}`}>
+            <body className="antialiased min-h-screen bg-[#020617] text-white">
                 {children}
             </body>
         </html>

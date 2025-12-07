@@ -4,42 +4,63 @@ import LotteryMachine from '@/components/LotteryMachine'
 export const dynamic = 'force-dynamic'
 
 export default async function Home() {
-    const draw = await getActiveDraw()
+    const { draw, participants } = await getActiveDraw()
 
     return (
-        <main className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
-            {/* Background Elements */}
-            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none"></div>
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-purple-600/20 rounded-full blur-[120px] -z-10"></div>
+        <main className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-900 via-[#020617] to-[#020617]">
+            {/* Background Decorative Elements */}
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-yellow-500/50 to-transparent"></div>
+            <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-yellow-500/20 to-transparent"></div>
 
-            <div className="z-10 w-full max-w-5xl mx-auto text-center">
-                {draw ? (
-                    <>
-                        <div className="mb-8 space-y-2">
-                            <span className="inline-block py-1 px-3 rounded-full bg-slate-800 text-purple-400 text-xs font-bold tracking-widest uppercase mb-4">
-                                Günün Çekilişi
-                            </span>
-                            <h1 className="text-4xl md:text-6xl font-black text-white tracking-tight mb-2">
+            {/* Main Content Container */}
+            <div className="w-full max-w-4xl px-4 relative z-10">
+
+                {/* Header Section */}
+                <div className="text-center mb-12">
+                    <div className="inline-block mb-4 px-4 py-1.5 rounded-full border border-yellow-500/20 bg-yellow-500/5 text-yellow-400/90 text-xs font-medium tracking-widest uppercase">
+                        Resmi Çekiliş Ekranı
+                    </div>
+
+                    {draw ? (
+                        <>
+                            <h1 className="text-4xl md:text-6xl font-serif font-bold text-white mb-2 tracking-tight">
                                 {draw.title}
                             </h1>
-                            <p className="text-slate-400 text-lg">
-                                {new Date(draw.draw_date).toLocaleDateString('tr-TR', { dateStyle: 'long' })}
+                            <p className="text-slate-400 text-lg uppercase tracking-widest font-light">
+                                {new Date(draw.draw_date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
                             </p>
-                        </div>
+                        </>
+                    ) : (
+                        <h1 className="text-4xl md:text-5xl font-serif font-bold text-white mb-6">
+                            Aktif Çekiliş Bulunamadı
+                        </h1>
+                    )}
+                </div>
 
-                        <LotteryMachine draw={draw} />
-                    </>
-                ) : (
-                    <div className="text-center py-20">
-                        <h1 className="text-3xl font-bold text-white mb-4">Aktif Çekiliş Yok</h1>
-                        <p className="text-slate-400">Şu anda aktif veya planlanmış bir çekiliş bulunmuyor.</p>
+                {/* Lottery Machine Section */}
+                <div className="relative">
+                    <div className="absolute -inset-1 bg-gradient-to-r from-yellow-500/0 via-yellow-500/20 to-yellow-500/0 rounded-2xl blur-lg transition-all duration-1000"></div>
+                    <div className="relative bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-8 md:p-12 shadow-2xl ring-1 ring-white/5">
+                        {draw ? (
+                            <LotteryMachine
+                                drawId={draw.id}
+                                initialParticipants={participants}
+                                winningParticipantId={draw.winning_participant_id}
+                            />
+                        ) : (
+                            <div className="text-center py-12">
+                                <p className="text-slate-400 text-lg">Şu anda planlanmış bir çekiliş bulunmamaktadır.</p>
+                                <p className="text-slate-500 text-sm mt-3">Lütfen daha sonra tekrar kontrol ediniz.</p>
+                            </div>
+                        )}
                     </div>
-                )}
-            </div>
+                </div>
 
-            <footer className="absolute bottom-4 text-center w-full text-slate-600 text-xs">
-                &copy; 2024 Çekiliş Sistemi. Tüm hakları saklıdır.
-            </footer>
+                {/* Footer */}
+                <footer className="mt-16 text-center">
+                    <p className="text-slate-600 text-xs tracking-widest uppercase">© 2024 Çekiliş Sistemi. Tüm hakları saklıdır.</p>
+                </footer>
+            </div>
         </main>
     )
 }
