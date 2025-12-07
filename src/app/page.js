@@ -1,65 +1,181 @@
-import { getActiveDraw } from '@/actions/public-actions'
-import LotteryMachine from '@/components/LotteryMachine'
+'use client'
 
-export const dynamic = 'force-dynamic'
+import { createAndRunDraw } from '@/actions/quick-draw'
+import { useState, useEffect } from 'react'
+import { Trophy, Users, Trash2, Shuffle, AlertCircle, Play, Sparkles } from 'lucide-react'
 
-export default async function Home() {
-    const { draw, participants } = await getActiveDraw()
+export default function Home() {
+    const [loading, setLoading] = useState(false)
+    const [participantText, setParticipantText] = useState('')
+    const [lineCount, setLineCount] = useState(0)
+
+    // Update count when text changes
+    useEffect(() => {
+        const lines = participantText.split(/\r?\n/).filter(line => line.trim() !== '')
+        setLineCount(lines.length)
+    }, [participantText])
+
+    async function handleSubmit(formData) {
+        setLoading(true)
+        const res = await createAndRunDraw(formData)
+        if (res?.error) {
+            alert(res.error)
+            setLoading(false)
+        }
+    }
+
+    const clearList = () => {
+        if (confirm('Listeyi temizlemek istediğinize emin misiniz?')) {
+            setParticipantText('')
+        }
+    }
+
+    const addSampleData = () => {
+        const samples = "Ahmet Yılmaz\nAyşe Demir\nMehmet Kaya\nFatma Çelik\nAli Veli\nZeynep Şahin\nMustafa Öztürk\nElif Arslan"
+        setParticipantText(prev => prev ? prev + '\n' + samples : samples)
+    }
 
     return (
-        <main className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-900 via-[#020617] to-[#020617]">
-            {/* Background Decorative Elements */}
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-yellow-500/50 to-transparent"></div>
-            <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-yellow-500/20 to-transparent"></div>
-
-            {/* Main Content Container */}
-            <div className="w-full max-w-4xl px-4 relative z-10">
-
-                {/* Header Section */}
-                <div className="text-center mb-12">
-                    <div className="inline-block mb-4 px-4 py-1.5 rounded-full border border-yellow-500/20 bg-yellow-500/5 text-yellow-400/90 text-xs font-medium tracking-widest uppercase">
-                        Resmi Çekiliş Ekranı
-                    </div>
-
-                    {draw ? (
-                        <>
-                            <h1 className="text-4xl md:text-6xl font-serif font-bold text-white mb-2 tracking-tight">
-                                {draw.title}
-                            </h1>
-                            <p className="text-slate-400 text-lg uppercase tracking-widest font-light">
-                                {new Date(draw.draw_date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
-                            </p>
-                        </>
-                    ) : (
-                        <h1 className="text-4xl md:text-5xl font-serif font-bold text-white mb-6">
-                            Aktif Çekiliş Bulunamadı
-                        </h1>
-                    )}
+        <main className="min-h-screen bg-[#020617] text-white">
+            {/* Simple Navbar */}
+            <nav className="border-b border-white/5 bg-[#020617]/50 backdrop-blur-md sticky top-0 z-50">
+                <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+                    <span className="font-bold text-xl tracking-tight flex items-center gap-2">
+                        <Sparkles size={18} className="text-yellow-500" />
+                        Çekiliş<span className="text-yellow-500">Pro</span>
+                    </span>
+                    <div className="text-xs text-slate-500 font-mono">v3.0</div>
                 </div>
+            </nav>
 
-                {/* Lottery Machine Section */}
-                <div className="relative">
-                    <div className="absolute -inset-1 bg-gradient-to-r from-yellow-500/0 via-yellow-500/20 to-yellow-500/0 rounded-2xl blur-lg transition-all duration-1000"></div>
-                    <div className="relative bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-8 md:p-12 shadow-2xl ring-1 ring-white/5">
-                        {draw ? (
-                            <LotteryMachine
-                                drawId={draw.id}
-                                initialParticipants={participants}
-                                winningParticipantId={draw.winning_participant_id}
-                            />
-                        ) : (
-                            <div className="text-center py-12">
-                                <p className="text-slate-400 text-lg">Şu anda planlanmış bir çekiliş bulunmamaktadır.</p>
-                                <p className="text-slate-500 text-sm mt-3">Lütfen daha sonra tekrar kontrol ediniz.</p>
+            <div className="w-full max-w-7xl mx-auto p-4 md:p-8 animate-in fade-in duration-500">
+                <form action={handleSubmit}>
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+                        {/* LEFT COLUMN: Participants List (8 cols) */}
+                        <div className="lg:col-span-8 order-2 lg:order-1">
+                            <div className="bg-slate-900/50 border border-white/5 rounded-2xl overflow-hidden flex flex-col h-[600px] shadow-2xl">
+                                {/* Toolbar */}
+                                <div className="bg-slate-900 border-b border-white/5 p-4 flex items-center justify-between">
+                                    <div className="flex items-center gap-2 text-slate-300 font-medium">
+                                        <Users size={18} className="text-yellow-500" />
+                                        <span>Katılımcı Listesi</span>
+                                        <span className="bg-white/10 text-white text-xs px-2 py-0.5 rounded-full ml-2">
+                                            {lineCount}
+                                        </span>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={addSampleData}
+                                            className="text-xs flex items-center gap-1 px-3 py-1.5 rounded-lg hover:bg-white/5 text-slate-400 hover:text-white transition-colors"
+                                        >
+                                            <Shuffle size={14} />
+                                            Örnek Ekle
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={clearList}
+                                            className="text-xs flex items-center gap-1 px-3 py-1.5 rounded-lg hover:bg-red-500/10 text-slate-400 hover:text-red-400 transition-colors"
+                                        >
+                                            <Trash2 size={14} />
+                                            Temizle
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Textarea */}
+                                <div className="flex-1 relative">
+                                    <textarea
+                                        name="participants"
+                                        value={participantText}
+                                        onChange={(e) => setParticipantText(e.target.value)}
+                                        placeholder="Her satıra bir isim gelecek şekilde katılımcıları buraya yapıştırın..."
+                                        required
+                                        className="w-full h-full bg-[#020617]/50 p-6 text-slate-300 placeholder:text-slate-600 focus:outline-none resize-none font-mono text-sm leading-relaxed"
+                                        spellCheck={false}
+                                    ></textarea>
+                                </div>
                             </div>
-                        )}
-                    </div>
-                </div>
+                        </div>
 
-                {/* Footer */}
-                <footer className="mt-16 text-center">
-                    <p className="text-slate-600 text-xs tracking-widest uppercase">© 2024 Çekiliş Sistemi. Tüm hakları saklıdır.</p>
-                </footer>
+                        {/* RIGHT COLUMN: Controls (4 cols) */}
+                        <div className="lg:col-span-4 order-1 lg:order-2 space-y-6">
+
+                            {/* Title & Settings Card */}
+                            <div className="bg-slate-900/50 border border-white/5 rounded-2xl p-6 shadow-2xl">
+                                <div className="mb-6 flex items-center gap-3">
+                                    <div className="bg-yellow-500/10 p-2.5 rounded-xl text-yellow-500">
+                                        <Trophy size={24} />
+                                    </div>
+                                    <h2 className="text-lg font-bold text-white">Çekiliş Ayarları</h2>
+                                </div>
+
+                                <div className="space-y-5">
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                                            Çekiliş Başlığı
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="title"
+                                            placeholder="Örn: iPhone 15 Çekilişi"
+                                            required
+                                            className="w-full bg-[#020617] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/50 transition-all placeholder:text-slate-700"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                                            Kazanan Sayısı
+                                        </label>
+                                        <div className="relative">
+                                            <input
+                                                type="number"
+                                                name="winnerCount"
+                                                defaultValue="1"
+                                                min="1"
+                                                className="w-full bg-[#020617] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/50 transition-all font-mono text-lg"
+                                            />
+                                            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 text-xs font-medium pointer-events-none">
+                                                KİŞİ
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Action Card */}
+                            <div className="bg-gradient-to-br from-yellow-500/10 to-yellow-600/5 border border-yellow-500/20 rounded-2xl p-6">
+                                <div className="flex items-start gap-3 mb-6">
+                                    <AlertCircle size={20} className="text-yellow-500 shrink-0 mt-0.5" />
+                                    <p className="text-xs text-yellow-200/70 leading-relaxed">
+                                        Çekilişi başlattığınızda sistem katılımcıları otomatik olarak karıştıracak ve belirlenen sayıda kazananı seçecektir.
+                                    </p>
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    disabled={loading || lineCount === 0}
+                                    className="w-full bg-yellow-500 hover:bg-yellow-400 text-slate-900 font-black text-lg py-5 rounded-xl transition-all shadow-[0_0_20px_rgba(234,179,8,0.2)] hover:shadow-[0_0_40px_rgba(234,179,8,0.4)] flex items-center justify-center gap-3 transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed group"
+                                >
+                                    {loading ? (
+                                        <>
+                                            <Sparkles className="animate-spin" size={24} />
+                                            HAZIRLANIYOR...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Play size={24} fill="currentColor" className="group-hover:scale-110 transition-transform" />
+                                            ÇEKİLİŞİ BAŞLAT
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+                </form>
             </div>
         </main>
     )
