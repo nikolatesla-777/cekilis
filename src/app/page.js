@@ -1,14 +1,17 @@
+```javascript
 'use client'
 
 import { createAndRunDraw } from '@/actions/quick-draw'
-import { useState, useEffect } from 'react'
-import { Trophy, Users, Trash2, Shuffle, AlertCircle, Play, Sparkles, Eye, Pencil, FileText } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { Trophy, Users, Trash2, Shuffle, AlertCircle, Play, Sparkles, Eye, Pencil, FileText, FileSpreadsheet } from 'lucide-react'
+import * as XLSX from 'xlsx'
 
 export default function Home() {
     const [loading, setLoading] = useState(false)
     const [participantText, setParticipantText] = useState('')
     const [lineCount, setLineCount] = useState(0)
     const [isEditing, setIsEditing] = useState(true)
+    const fileInputRef = useRef(null)
 
     // Update count when text changes
     useEffect(() => {
@@ -39,6 +42,43 @@ export default function Home() {
         const baseSamples = ["Ahmet Yılmaz", "Ayşe Demir", "Mehmet Kaya", "Fatma Çelik", "Ali Veli", "Zeynep Şahin", "Mustafa Öztürk", "Elif Arslan", "Burak Yılmaz", "Ceren Karaca"]
         const samples = Array(5).fill(baseSamples).flat().join('\n')
         setParticipantText(prev => prev ? prev + '\n' + samples : samples)
+    }
+
+    const handleFileUpload = (e) => {
+        const file = e.target.files[0]
+        if (!file) return
+
+        const reader = new FileReader()
+        reader.onload = (evt) => {
+            try {
+                const bstr = evt.target.result
+                const wb = XLSX.read(bstr, { type: 'binary' })
+                const wsname = wb.SheetNames[0]
+                const ws = wb.Sheets[wsname]
+                // Extract column A (or the first found column)
+                const data = XLSX.utils.sheet_to_json(ws, { header: 1 })
+                
+                // Flatten and clean data
+                const newParticipants = data.flat().filter(item => item && item.toString().trim() !== '').map(item => item.toString().trim())
+                
+                if (newParticipants.length > 0) {
+                    setParticipantText(prev => {
+                        const current = prev ? prev + '\n' : ''
+                        return current + newParticipants.join('\n')
+                    })
+                    alert(`${ newParticipants.length } katılımcı eklendi.`)
+                } else {
+                    alert('Dosyada uygun veri bulunamadı.')
+                }
+            } catch (error) {
+                console.error("Excel okuma hatası:", error)
+                alert('Dosya okunurken bir hata oluştu.')
+            }
+        }
+        reader.readAsBinaryString(file)
+        
+        // Reset input
+        e.target.value = null
     }
 
     return (
@@ -117,7 +157,7 @@ export default function Home() {
                                 <button
                                     type="button"
                                     onClick={() => setIsEditing(true)}
-                                    className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${isEditing ? 'bg-blue-500 text-white shadow-lg' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                                    className={`flex items - center gap - 2 px - 4 py - 2 rounded - md text - sm font - medium transition - all ${ isEditing ? 'bg-blue-500 text-white shadow-lg' : 'text-slate-400 hover:text-white hover:bg-white/5' } `}
                                 >
                                     <Pencil size={14} />
                                     Düzenle
@@ -125,7 +165,7 @@ export default function Home() {
                                 <button
                                     type="button"
                                     onClick={() => setIsEditing(false)}
-                                    className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${!isEditing ? 'bg-blue-500 text-white shadow-lg' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                                    className={`flex items - center gap - 2 px - 4 py - 2 rounded - md text - sm font - medium transition - all ${ !isEditing ? 'bg-blue-500 text-white shadow-lg' : 'text-slate-400 hover:text-white hover:bg-white/5' } `}
                                 >
                                     <Eye size={14} />
                                     Önizle (Kolonlu)
@@ -136,7 +176,25 @@ export default function Home() {
                                 <div className="text-sm font-mono bg-white/5 border border-white/5 px-4 py-2 rounded-lg text-slate-300 min-w-[100px] text-center">
                                     <span className="font-bold text-white">{lineCount}</span> Kişi
                                 </div>
+                                
+                                {/* Excel Upload Input */}
+                                <input 
+                                    type="file" 
+                                    accept=".xlsx, .xls" 
+                                    className="hidden" 
+                                    ref={fileInputRef} 
+                                    onChange={handleFileUpload} 
+                                />
+
                                 <div className="flex gap-2">
+                                     <button 
+                                        type="button"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="p-2.5 rounded-lg bg-green-500/10 hover:bg-green-500/20 text-green-400 transition-colors border border-green-500/10"
+                                        title="Excel Yükle"
+                                    >
+                                        <FileSpreadsheet size={18} />
+                                    </button>
                                     <button
                                         type="button"
                                         onClick={addSampleData}
@@ -164,7 +222,7 @@ export default function Home() {
                                     name="participants"
                                     value={participantText}
                                     onChange={(e) => setParticipantText(e.target.value)}
-                                    placeholder="Her satıra bir ID/İsim gelecek şekilde yapıştırın..."
+                                    placeholder="Her satıra bir ID/İsim gelecek şekilde yapıştırın veya Excel yükleyin..."
                                     className="w-full h-full bg-transparent p-6 text-base text-slate-300 placeholder:text-slate-700 focus:outline-none resize-none font-mono leading-relaxed"
                                     spellCheck={false}
                                     autoFocus
@@ -216,7 +274,7 @@ export default function Home() {
                             )}
                         </button>
                         <p className="text-center text-sm text-slate-600 mt-6 font-medium">
-                            {lineCount > 0 ? `${lineCount} katılımcı ile çekiliş başlatılacak.` : 'Lütfen önce katılımcı listesini doldurun.'}
+                            {lineCount > 0 ? `${ lineCount } katılımcı ile çekiliş başlatılacak.` : 'Lütfen önce katılımcı listesini doldurun.'}
                         </p>
                     </div>
 
