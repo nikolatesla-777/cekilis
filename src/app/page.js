@@ -2,7 +2,7 @@
 
 import { createAndRunDraw } from '@/actions/quick-draw'
 import { useState, useEffect, useRef, useMemo, useDeferredValue } from 'react'
-import { Trophy, Users, Trash2, Shuffle, AlertCircle, Play, Sparkles, Eye, Pencil, FileText, FileSpreadsheet } from 'lucide-react'
+import { Trophy, Users, Trash2, Shuffle, AlertCircle, Play, Sparkles, Eye, Pencil, FileText, FileSpreadsheet, Loader2 } from 'lucide-react'
 import * as XLSX from 'xlsx'
 
 import { useRouter } from 'next/navigation'
@@ -39,19 +39,57 @@ export default function Home() {
     }, [deferredText])
 
     async function handleSubmit(formData) {
-        // Optimization: Manually append participants from state.
-        // This allows us to remove the massive Textarea from the DOM in 'view mode' to prevent crashes.
+        // 1. Open new tab IMMEDIATELY to bypass popup blockers
+        const newTab = window.open('', '_blank')
+
+        if (!newTab) {
+            alert('Lütfen tarayıcınızın "Pop-up" engelleyicisini kapatın ve tekrar deneyin.')
+            return
+        }
+
+        // 2. Show beautiful loading state in new tab
+        newTab.document.write(`
+            <html>
+                <head>
+                    <title>Çekiliş Hazırlanıyor | ÇekilişPro</title>
+                    <meta charset="utf-8">
+                </head>
+                <body style="background-color: #020617; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: system-ui, sans-serif; margin: 0; text-align: center;">
+                    <div style="width: 60px; height: 60px; border: 4px solid #1e293b; border-top-color: #eab308; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                    <h1 style="margin-top: 30px; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">Çekiliş Hazırlanıyor</h1>
+                    <p style="margin-top: 10px; color: #94a3b8; font-size: 14px;">Katılımcılar aktarılıyor, lütfen bekleyiniz...</p>
+                    <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+                </body>
+            </html>
+        `)
+
+        // 3. Optimization: Manually append participants
         if (!formData.get('participants') && participantText) {
             formData.set('participants', participantText)
         }
 
         setLoading(true)
-        const res = await createAndRunDraw(formData)
-        if (res?.error) {
-            alert(res.error)
+
+        try {
+            const res = await createAndRunDraw(formData)
+
+            if (res?.error) {
+                newTab.close()
+                alert(res.error)
+                setLoading(false)
+            } else if (res?.success) {
+                // 4. Redirect the new tab
+                newTab.location.href = `/draw/${res.drawId}`
+
+                // 5. Reset loading state on main page
+                setLoading(false)
+                // Optional: Show success toast on main page?
+            }
+        } catch (error) {
+            newTab.close()
+            console.error(error)
+            alert('Beklenmedik bir hata oluştu.')
             setLoading(false)
-        } else if (res?.success) {
-            router.push(`/draw/${res.drawId}`)
         }
     }
 
@@ -373,9 +411,9 @@ export default function Home() {
                                     <Loader2 className="w-16 h-16 text-yellow-500 animate-spin relative z-10" />
                                 </div>
                                 <div className="space-y-2">
-                                    <h3 className="text-2xl font-bold text-white">Çekiliş Hazırlanıyor</h3>
+                                    <h3 className="text-2xl font-bold text-white">Son Ayarlar Yapılıyor</h3>
                                     <p className="text-slate-400 text-sm animate-pulse">
-                                        Katılımcılar veritabanına aktarılıyor, lütfen bekleyiniz...
+                                        Çekiliş hazırlanıyor, lütfen bekleyiniz...
                                     </p>
                                 </div>
                             </div>
