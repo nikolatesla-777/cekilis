@@ -336,29 +336,51 @@ export default function Home() {
                     </div>
 
                     {/* SECTION 3: ACTION */}
-                    <div className="w-full max-w-3xl mx-auto pt-4">
+                    <div className="flex flex-col items-center gap-4">
                         <button
                             type="submit"
-                            disabled={loading || lineCount === 0}
-                            className="w-full bg-yellow-500 hover:bg-yellow-400 text-slate-900 font-extrabold text-2xl py-8 rounded-2xl transition-all shadow-[0_0_40px_rgba(234,179,8,0.2)] hover:shadow-[0_0_60px_rgba(234,179,8,0.4)] flex items-center justify-center gap-4 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed group"
+                            disabled={loading || (!participantText && !fileInputRef.current?.value)}
+                            className="group relative w-full max-w-xl mx-auto h-16 bg-yellow-500 hover:bg-yellow-400 text-slate-900 font-black text-xl uppercase tracking-wider rounded-2xl shadow-[0_0_40px_-10px_rgba(234,179,8,0.3)] hover:shadow-[0_0_60px_-10px_rgba(234,179,8,0.5)] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none overflow-hidden"
                         >
-                            {loading ? (
-                                <>
-                                    <Sparkles className="animate-spin" size={28} />
-                                    <span>HAZIRLANIYOR...</span>
-                                </>
-                            ) : (
-                                <>
-                                    <Play size={32} fill="currentColor" className="group-hover:scale-110 transition-transform" />
-                                    <span>ÇEKİLİŞİ BAŞLAT</span>
-                                </>
-                            )}
+                            <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 transform skew-y-12"></div>
+                            <span className="relative flex items-center justify-center gap-3">
+                                {loading ? (
+                                    <>
+                                        <Loader2 className="animate-spin" size={24} />
+                                        <span>İşleniyor...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Play size={24} fill="currentColor" />
+                                        <span>Çekilişi Başlat</span>
+                                    </>
+                                )}
+                            </span>
                         </button>
-                        <p className="text-center text-sm text-slate-600 mt-6 font-medium">
-                            {lineCount > 0 ? `${lineCount} katılımcı ile çekiliş başlatılacak.` : 'Lütfen önce katılımcı listesini doldurun.'}
-                        </p>
+                        {participantText && (
+                            <p className="text-[10px] text-slate-500 font-medium uppercase tracking-widest">
+                                {lineCount.toLocaleString()} katılımcı ile çekiliş başlatılacak.
+                            </p>
+                        )}
                     </div>
 
+                    {/* Full Screen Loading Overlay */}
+                    {loading && (
+                        <div className="fixed inset-0 z-50 bg-[#020617]/90 backdrop-blur-sm flex items-center justify-center">
+                            <div className="flex flex-col items-center gap-6 max-w-sm text-center p-6 animate-in fade-in zoom-in duration-300">
+                                <div className="relative">
+                                    <div className="absolute inset-0 bg-yellow-500/20 blur-xl rounded-full animate-pulse"></div>
+                                    <Loader2 className="w-16 h-16 text-yellow-500 animate-spin relative z-10" />
+                                </div>
+                                <div className="space-y-2">
+                                    <h3 className="text-2xl font-bold text-white">Çekiliş Hazırlanıyor</h3>
+                                    <p className="text-slate-400 text-sm animate-pulse">
+                                        Katılımcılar veritabanına aktarılıyor, lütfen bekleyiniz...
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </form>
             </div>
         </main>
