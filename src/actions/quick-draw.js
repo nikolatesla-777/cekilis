@@ -54,12 +54,16 @@ export async function createAndRunDraw(formData) {
 
         // If Manual Winner Specified
         if (manualWinnerId) {
-            // Find EXACT match in inserted participants to ensure valid ID
-            selectedWinner = insertedParticipants.find(p => p.user_id === manualWinnerId || p.name === manualWinnerId)
+            const targetId = String(manualWinnerId).trim();
+
+            // Find match with robust string comparison
+            selectedWinner = insertedParticipants.find(p =>
+                String(p.user_id).trim() === targetId ||
+                String(p.name).trim() === targetId
+            )
 
             if (!selectedWinner) {
-                // Try looser match? No, stick to strict for safety or throw clear error.
-                throw new Error(`Belirtilen kazanan (${manualWinnerId}) katılımcı listesinde bulunamadı. Lütfen kontrol edip tekrar deneyin.`)
+                throw new Error(`Belirtilen kazanan (${manualWinnerId}) listede bulunamadı. Lütfen boşluksuz ve birebir aynı şekilde yazdığınızdan emin olun.`)
             }
         } else {
             // Random Winner
