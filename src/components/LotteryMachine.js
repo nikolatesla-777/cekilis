@@ -21,10 +21,17 @@ export default function LotteryMachine({ drawId, initialParticipants, winningPar
         participantsRef.current = participants
     }, [participants])
 
-    // Ensure we don't show winner initially
+    // Auto-start the draw when the page loads
     useEffect(() => {
-        // Reset or prepare if needed
+        // Small delay to ensure the UI is ready and the transition feels natural
+        const timer = setTimeout(() => {
+            if (!winner && !isSpinning) {
+                startDraw()
+            }
+        }, 500)
+        return () => clearTimeout(timer)
     }, [])
+
 
     const startDraw = async () => {
         if (isSpinning || winner) return
