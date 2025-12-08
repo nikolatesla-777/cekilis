@@ -251,14 +251,33 @@ export default function Home() {
                             {/* VIEW MODE: Columns (Always in DOM, hidden when editing) */}
                             <div className={`w-full h-full p-6 overflow-y-auto custom-scrollbar ${!isEditing ? 'block' : 'hidden'}`}>
                                 {participantText ? (
-                                    <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 2xl:columns-6 gap-8 space-y-1">
-                                        {/* Memoized & Deferred list to prevent INP/Lag issues */}
-                                        {useMemo(() => deferredText.split(/\r?\n/).filter(l => l.trim()).map((line, i) => (
-                                            <div key={i} className="break-inside-avoid text-xs font-mono text-slate-400 hover:text-white py-0.5 border-b border-white/5 truncate px-2 rounded hover:bg-white/5 transition-colors">
-                                                <span className="text-slate-600 mr-2 select-none">{i + 1}.</span>
-                                                {line}
-                                            </div>
-                                        )), [deferredText])}
+                                    <div className="h-full">
+                                        <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 2xl:columns-6 gap-8 space-y-1 pb-8">
+                                            {/* Optimization: Render only first 2000 items to prevent DOM crash */}
+                                            {useMemo(() => {
+                                                const allLines = deferredText.split(/\r?\n/).filter(l => l.trim())
+                                                const previewLines = allLines.slice(0, 1000)
+                                                const remainingCount = allLines.length - 1000
+
+                                                return (
+                                                    <>
+                                                        {previewLines.map((line, i) => (
+                                                            <div key={i} className="break-inside-avoid text-xs font-mono text-slate-400 hover:text-white py-0.5 border-b border-white/5 truncate px-2 rounded hover:bg-white/5 transition-colors">
+                                                                <span className="text-slate-600 mr-2 select-none">{i + 1}.</span>
+                                                                {line}
+                                                            </div>
+                                                        ))}
+                                                        {remainingCount > 0 && (
+                                                            <div className="break-inside-avoid p-4 text-center bg-yellow-500/10 border border-yellow-500/20 rounded-lg text-yellow-500 font-bold text-xs mt-4">
+                                                                ... ve {remainingCount.toLocaleString()} kişi daha
+                                                                <br />
+                                                                <span className="text-[10px] font-normal opacity-70">(Performans için listenin tamamı gösterilmiyor)</span>
+                                                            </div>
+                                                        )}
+                                                    </>
+                                                )
+                                            }, [deferredText])}
+                                        </div>
                                     </div>
                                 ) : (
                                     <div className="flex flex-col items-center justify-center h-full text-slate-600 gap-4">
