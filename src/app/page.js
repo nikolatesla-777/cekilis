@@ -15,18 +15,28 @@ export default function Home() {
     const [isEditing, setIsEditing] = useState(true)
     const [showAdvanced, setShowAdvanced] = useState(false)
     const [isProcessing, setIsProcessing] = useState(false)
+    const [previewList, setPreviewList] = useState([])
     const fileInputRef = useRef(null)
 
     // Defer the heavy text processing to keep UI responsive
     const deferredText = useDeferredValue(participantText)
 
-    // Update count when text changes
+    // Update count and preview when text changes (deferred)
     useEffect(() => {
-        const lines = participantText.split(/\r?\n/).filter(line => line.trim() !== '')
-        setLineCount(lines.length)
-        // Auto-switch to view mode if line count is high (> 20) to show columns effect immediately
-        if (lines.length > 20) setIsEditing(false)
-    }, [participantText])
+        // Run heavy parsing in effect to avoid blocking render
+        try {
+            const lines = deferredText.split(/\r?\n/).filter(line => line.trim() !== '')
+            setLineCount(lines.length)
+
+            // Only store a small subset for preview to save memory/DOM
+            setPreviewList(lines.slice(0, 100))
+
+            // Auto-switch to view mode if line count is high (> 20)
+            if (lines.length > 20) setIsEditing(false)
+        } catch (e) {
+            console.error("Error parsing participants:", e)
+        }
+    }, [deferredText])
 
     async function handleSubmit(formData) {
         // Optimization: Manually append participants from state.
@@ -261,30 +271,21 @@ export default function Home() {
                                 {participantText ? (
                                     <div className="h-full">
                                         <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 2xl:columns-6 gap-8 space-y-1 pb-8">
-                                            {/* Optimization: Render only first 2000 items to prevent DOM crash */}
-                                            {useMemo(() => {
-                                                const allLines = deferredText.split(/\r?\n/).filter(l => l.trim())
-                                                const previewLines = allLines.slice(0, 1000)
-                                                const remainingCount = allLines.length - 1000
+                                            {/* Optimization: Render pre-calculated preview list */}
+                                            {previewList.map((line, i) => (
+                                                <div key={i} className="break-inside-avoid text-xs font-mono text-slate-400 hover:text-white py-0.5 border-b border-white/5 truncate px-2 rounded hover:bg-white/5 transition-colors">
+                                                    <span className="text-slate-600 mr-2 select-none">{i + 1}.</span>
+                                                    {line}
+                                                </div>
+                                            ))}
 
-                                                return (
-                                                    <>
-                                                        {previewLines.map((line, i) => (
-                                                            <div key={i} className="break-inside-avoid text-xs font-mono text-slate-400 hover:text-white py-0.5 border-b border-white/5 truncate px-2 rounded hover:bg-white/5 transition-colors">
-                                                                <span className="text-slate-600 mr-2 select-none">{i + 1}.</span>
-                                                                {line}
-                                                            </div>
-                                                        ))}
-                                                        {remainingCount > 0 && (
-                                                            <div className="break-inside-avoid p-4 text-center bg-yellow-500/10 border border-yellow-500/20 rounded-lg text-yellow-500 font-bold text-xs mt-4">
-                                                                ... ve {remainingCount.toLocaleString()} kişi daha
-                                                                <br />
-                                                                <span className="text-[10px] font-normal opacity-70">(Performans için listenin tamamı gösterilmiyor)</span>
-                                                            </div>
-                                                        )}
-                                                    </>
-                                                )
-                                            }, [deferredText])}
+                                            {(lineCount - previewList.length) > 0 && (
+                                                <div className="break-inside-avoid p-4 text-center bg-yellow-500/10 border border-yellow-500/20 rounded-lg text-yellow-500 font-bold text-xs mt-4">
+                                                    ... ve {(lineCount - previewList.length).toLocaleString()} kişi daha
+                                                    <br />
+                                                    <span className="text-[10px] font-normal opacity-70">(Listenin kalanı hafızada güvende)</span>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 ) : (
