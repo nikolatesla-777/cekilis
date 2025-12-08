@@ -277,26 +277,24 @@ export default function Home() {
                             </button>
                         </div>
 
-                        {showAdvanced && (
-                            <div className="bg-slate-900/50 border border-dashed border-slate-700/50 rounded-xl p-6 mb-8 animate-in fade-in slide-in-from-top-4">
-                                <div className="space-y-2 text-center">
-                                    <label className="text-xs font-bold text-yellow-500/80 uppercase tracking-widest flex items-center justify-center gap-2">
-                                        <AlertCircle size={14} />
-                                        Manuel Kazanan Belirle (Opsiyonel)
-                                    </label>
-                                    <p className="text-[10px] text-slate-500 max-w-md mx-auto">
-                                        Eğer buraya bir ID yazarsanız, çekiliş sonucu otomatik olarak bu kişi çıkacaktır.
-                                        Yazdığınız ID listede *birebir* aynı şekilde bulunmalıdır.
-                                    </p>
-                                    <input
-                                        type="text"
-                                        name="manualWinner"
-                                        placeholder="Örn: 10542 veya Ahmet Yılmaz"
-                                        className="w-full max-w-md mx-auto bg-[#020617] border border-yellow-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-yellow-500 transition-all font-mono text-center text-sm placeholder:text-slate-800"
-                                    />
-                                </div>
+                        <div className={`bg-slate-900/50 border border-dashed border-slate-700/50 rounded-xl p-6 mb-8 transition-all ${showAdvanced ? 'block animate-in fade-in slide-in-from-top-4' : 'hidden'}`}>
+                            <div className="space-y-2 text-center">
+                                <label className="text-xs font-bold text-yellow-500/80 uppercase tracking-widest flex items-center justify-center gap-2">
+                                    <AlertCircle size={14} />
+                                    Manuel Kazanan Belirle (Opsiyonel)
+                                </label>
+                                <p className="text-[10px] text-slate-500 max-w-md mx-auto">
+                                    Eğer buraya bir ID yazarsanız, çekiliş sonucu otomatik olarak bu kişi çıkacaktır.
+                                    Yazdığınız ID listede *birebir* aynı şekilde bulunmalıdır.
+                                </p>
+                                <input
+                                    type="text"
+                                    name="manualWinner"
+                                    placeholder="Örn: 10542 veya Ahmet Yılmaz"
+                                    className="w-full max-w-md mx-auto bg-[#020617] border border-yellow-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-yellow-500 transition-all font-mono text-center text-sm placeholder:text-slate-800"
+                                />
                             </div>
-                        )}
+                        </div>
                     </div>
 
                     {/* SECTION 3: ACTION */}
