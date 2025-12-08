@@ -8,20 +8,22 @@ import { Trophy } from 'lucide-react'
 import clsx from 'clsx'
 
 export default function LotteryMachine({ drawId, initialParticipants, winningParticipantId }) {
-    const [currentName, setCurrentName] = useState(initialParticipants[0]?.name || 'Hazırlanıyor...')
+    const [currentName, setCurrentName] = useState('???')
     const [isSpinning, setIsSpinning] = useState(false)
     const [winner, setWinner] = useState(null)
     const [participants, setParticipants] = useState(initialParticipants)
+    const [showModal, setShowModal] = useState(false)
     const animationRef = useRef(null)
 
-    // Polling / Props Check
+    // Ensure we don't show winner initially
     useEffect(() => {
-        // If we wanted to auto-start or react to external changes we could do it here.
-    }, [winningParticipantId])
-
+        // Reset or prepare if needed
+    }, [])
 
     const startDraw = async () => {
         if (isSpinning || winner) return
+
+        setShowModal(true)
         setIsSpinning(true)
 
         // Ensure we have enough participants for visual variance
@@ -34,8 +36,8 @@ export default function LotteryMachine({ drawId, initialParticipants, winningPar
 
         // Animation Variables
         let counter = 0
-        const totalSpins = 300 // Increased from 60 to ~300 for 12-15s duration
-        let speed = 50 // Slower start
+        const totalSpins = 300
+        let speed = 50
 
         const spin = () => {
             // Pick random name
@@ -44,9 +46,7 @@ export default function LotteryMachine({ drawId, initialParticipants, winningPar
             counter++
 
             if (counter < totalSpins) {
-                // Exponential decay for speed (slowing down)
                 if (counter > totalSpins - 20) speed *= 1.1
-
                 animationRef.current = setTimeout(spin, speed)
             } else {
                 finishDraw()
@@ -60,25 +60,17 @@ export default function LotteryMachine({ drawId, initialParticipants, winningPar
         // Reveal Visuals
         let finalWinnerData = null
 
-        // "Rigged" / Pre-determined Logic
         if (winningParticipantId) {
-            // Try to find in our current pool
             finalWinnerData = participants.find(p => p.id === winningParticipantId)
-
-            // If not in pool (because pool is random subset), we need to fake it or fetch it.
-            // For this specific iteration, we assume the initial list OR the random fetch caught it.
-            // If not, we have a problem displaying the name.
-            // FALLBACK: If we can't find the name, we show the ID or a generic "Winner Found" message.
-            // Ideally, `getActiveDraw` should have returned the winner object if set.
-
             if (!finalWinnerData) {
-                // Quick hack: Use a placeholder if data missing. 
-                // In a perfect world we fetch `getParticipant(id)`.
-                finalWinnerData = { name: 'KAZANAN (Veri Yükleniyor...)', user_id: 'ID:' + winningParticipantId }
+                // If missing from random subset, try to find in initial list passed as prop
+                finalWinnerData = initialParticipants.find(p => p.id === winningParticipantId)
+            }
+            if (!finalWinnerData) {
+                // Fallback
+                finalWinnerData = { name: 'KAZANAN', user_id: 'ID:' + winningParticipantId }
             }
         } else {
-            // If no winner set by admin, implies random? But requirements say "Pre-selected".
-            // Use random one from pool just to not break UI if admin forgot to set.
             finalWinnerData = participants[Math.floor(Math.random() * participants.length)]
         }
 
@@ -90,8 +82,6 @@ export default function LotteryMachine({ drawId, initialParticipants, winningPar
     const triggerConfetti = () => {
         const duration = 5 * 1000
         const end = Date.now() + duration
-
-        // Premium Gold/Silver Confetti
         const colors = ['#D4AF37', '#F5F5F5', '#FFD700']
 
             (function frame() {
@@ -100,14 +90,16 @@ export default function LotteryMachine({ drawId, initialParticipants, winningPar
                     angle: 60,
                     spread: 55,
                     origin: { x: 0 },
-                    colors: colors
+                    colors: colors,
+                    zIndex: 9999 // Ensure on top of modal
                 })
                 confetti({
                     particleCount: 5,
                     angle: 120,
                     spread: 55,
                     origin: { x: 1 },
-                    colors: colors
+                    colors: colors,
+                    zIndex: 9999
                 })
 
                 if (Date.now() < end) {
@@ -118,73 +110,39 @@ export default function LotteryMachine({ drawId, initialParticipants, winningPar
 
     return (
         <div className="flex flex-col items-center justify-center py-8 text-center min-h-[300px]">
+
+            {/* Main Display - Before & After */}
             <div className="relative mb-12 w-full max-w-2xl mx-auto">
-                <AnimatePresence mode="wait">
-                    <motion.div
-                        key={isSpinning ? 'spinning' : (winner ? 'winner' : 'idle')}
-                        initial={{ opacity: 0, scale: 0.95, filter: 'blur(10px)' }}
-                        animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-                        exit={{ opacity: 0, scale: 1.05, filter: 'blur(10px)' }}
-                        transition={{ duration: 0.3 }}
-                        className={clsx(
-                            "text-4xl md:text-6xl font-sans font-bold tracking-tight py-12 px-8 rounded-2xl border bg-slate-900/80 shadow-2xl backdrop-blur-md min-w-[300px]",
-                            winner
-                                ? "text-yellow-400 border-yellow-500/50 shadow-[0_0_50px_rgba(234,179,8,0.2)]"
-                                : "text-white border-white/5"
-                        )}
-                    >
-                        {winner ? winner.name : currentName}
-                    </motion.div>
-                </AnimatePresence>
+                <div className={clsx(
+                    "text-4xl md:text-6xl font-sans font-bold tracking-tight py-12 px-8 rounded-2xl border transition-all duration-500",
+                    winner ? "bg-slate-900/80 shadow-2xl border-yellow-500/50 text-yellow-500" : "bg-slate-900/50 border-white/5 text-slate-500"
+                )}>
+                    {winner ? winner.name : "Çekilişe Hazır"}
+                </div>
 
                 {winner && (
-                    <motion.div
-                        initial={{ scale: 0, rotate: -180 }}
-                        animate={{ scale: 1, rotate: 0 }}
-                        transition={{ type: "spring", stiffness: 260, damping: 20 }}
-                        className="absolute -top-10 -right-4 md:-right-10 text-yellow-500 z-20"
-                    >
-                        <div className="relative">
-                            <div className="absolute inset-0 bg-yellow-400 blur-xl opacity-50"></div>
-                            <Trophy size={64} className="relative drop-shadow-xl" strokeWidth={1.5} />
-                        </div>
-                    </motion.div>
+                    <div className="absolute -top-10 -right-4 md:-right-10 text-yellow-500 z-20 animate-bounce">
+                        <Trophy size={64} className="drop-shadow-xl" strokeWidth={1.5} />
+                    </div>
                 )}
             </div>
 
+            {/* Start Button (Visible only if no winner picked yet) */}
             {!winner && (
                 <button
                     onClick={startDraw}
-                    disabled={isSpinning || !winningParticipantId}
-                    className={clsx(
-                        "group relative px-10 py-5 bg-transparent overflow-hidden rounded-full transition-all duration-500",
-                        (isSpinning || !winningParticipantId) ? "opacity-30 cursor-not-allowed" : "hover:scale-105 hover:shadow-[0_0_30px_rgba(234,179,8,0.3)]"
-                    )}
+                    className="group relative px-12 py-6 bg-yellow-500 hover:bg-yellow-400 text-slate-900 font-black text-xl rounded-full transition-all shadow-[0_0_30px_rgba(234,179,8,0.3)] hover:shadow-[0_0_50px_rgba(234,179,8,0.5)] active:scale-95"
                 >
-                    {/* Button Background & Border */}
-                    <div className="absolute inset-0 w-full h-full bg-slate-800 border border-white/10 rounded-full"></div>
-                    <div className="absolute inset-0 bg-gradient-to-r from-yellow-600/20 to-yellow-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-
-                    {/* Text */}
-                    <span className="relative font-bold text-yellow-500 tracking-[0.2em] uppercase text-sm flex items-center justify-center gap-4">
-                        {isSpinning ? (
-                            <>
-                                <span className="animate-spin text-lg">◌</span>
-                                Çekiliyor...
-                            </>
-                        ) : (
-                            (!winningParticipantId ? "Yönetici Seçimi Bekleniyor" : "Çekilişi Başlat")
-                        )}
-                    </span>
+                    ÇEKİLİŞİ BAŞLAT
                 </button>
             )}
 
+            {/* Winner Info underneath */}
             {winner && (
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 }}
-                    className="mt-8 p-6 border border-yellow-500/20 bg-gradient-to-b from-yellow-500/10 to-transparent rounded-xl w-full max-w-md"
+                    className="mt-4 p-6 border border-yellow-500/20 bg-gradient-to-b from-yellow-500/10 to-transparent rounded-xl w-full max-w-md"
                 >
                     <div className="flex flex-col gap-2">
                         <p className="text-yellow-500/60 text-xs font-semibold uppercase tracking-widest">Kazanan Kimliği</p>
@@ -192,6 +150,65 @@ export default function LotteryMachine({ drawId, initialParticipants, winningPar
                     </div>
                 </motion.div>
             )}
+
+            {/* ANIMATION MODAL */}
+            <AnimatePresence>
+                {showModal && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-xl p-4"
+                    >
+                        <div className="w-full max-w-4xl text-center space-y-12 relative">
+
+                            {/* Close button for modal after win */}
+                            {!isSpinning && winner && (
+                                <button
+                                    onClick={() => setShowModal(false)}
+                                    className="absolute -top-12 right-0 text-slate-400 hover:text-white uppercase text-xs tracking-widest"
+                                >
+                                    Kapat ve Özet Gör &times;
+                                </button>
+                            )}
+
+                            <h2 className="text-yellow-500 font-bold tracking-[0.2em] text-sm animate-pulse">
+                                {isSpinning ? 'TALİHLİ SEÇİLİYOR...' : 'TEBRİKLER!'}
+                            </h2>
+
+                            <motion.div
+                                key={currentName} // Re-render on name change for flash effect? Or just text update.
+                                className="text-5xl md:text-7xl lg:text-8xl font-black text-white tracking-tight"
+                            >
+                                {winner ? winner.name : currentName}
+                            </motion.div>
+
+                            {winner && (
+                                <motion.div
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    className="text-2xl md:text-3xl font-mono text-slate-400"
+                                >
+                                    #{winner.user_id}
+                                </motion.div>
+                            )}
+
+                            {isSpinning && (
+                                <div className="w-full max-w-md mx-auto h-1 bg-slate-800 rounded-full overflow-hidden">
+                                    <motion.div
+                                        className="h-full bg-yellow-500"
+                                        initial={{ width: "0%" }}
+                                        animate={{ width: "100%" }}
+                                        transition={{ duration: 15, ease: "linear" }} // Match totalSpins duration roughly
+                                    />
+                                </div>
+                            )}
+
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
         </div>
     )
 }
