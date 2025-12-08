@@ -43,14 +43,29 @@ export async function createAndRunDraw(formData) {
 
         if (partError) throw new Error('Katılımcılar eklenemedi: ' + partError.message)
 
-        // 3. Pick a Winner IMMEDIATELY
-        // Only if we successfully inserted them.
+        // Ensure participants were actually inserted before proceeding
         if (!insertedParticipants || insertedParticipants.length === 0) {
             throw new Error('Katılımcılar veritabanına yazılamadı.')
         }
 
-        const winnerIndex = Math.floor(Math.random() * insertedParticipants.length)
-        const selectedWinner = insertedParticipants[winnerIndex]
+        // 3. Pick a Winner
+        const manualWinnerId = formData.get('manualWinner')?.toString().trim()
+        let selectedWinner
+
+        // If Manual Winner Specified
+        if (manualWinnerId) {
+            // Find EXACT match in inserted participants to ensure valid ID
+            selectedWinner = insertedParticipants.find(p => p.user_id === manualWinnerId || p.name === manualWinnerId)
+
+            if (!selectedWinner) {
+                // Try looser match? No, stick to strict for safety or throw clear error.
+                throw new Error(`Belirtilen kazanan (${manualWinnerId}) katılımcı listesinde bulunamadı. Lütfen kontrol edip tekrar deneyin.`)
+            }
+        } else {
+            // Random Winner
+            const winnerIndex = Math.floor(Math.random() * insertedParticipants.length)
+            selectedWinner = insertedParticipants[winnerIndex]
+        }
 
         // 4. Update Draw with Winner
         const { error: updateError } = await supabase
