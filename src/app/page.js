@@ -14,6 +14,7 @@ export default function Home() {
     const [lineCount, setLineCount] = useState(0)
     const [isEditing, setIsEditing] = useState(true)
     const [showAdvanced, setShowAdvanced] = useState(false)
+    const [isProcessing, setIsProcessing] = useState(false)
     const fileInputRef = useRef(null)
 
     // Defer the heavy text processing to keep UI responsive
@@ -56,39 +57,47 @@ export default function Home() {
         const file = e.target.files[0]
         if (!file) return
 
-        const reader = new FileReader()
-        reader.onload = (evt) => {
-            try {
-                const bstr = evt.target.result
-                const wb = XLSX.read(bstr, { type: 'binary' })
-                const wsname = wb.SheetNames[0]
-                const ws = wb.Sheets[wsname]
-                // Extract column A (or the first found column)
-                const data = XLSX.utils.sheet_to_json(ws, { header: 1 })
+        setIsProcessing(true)
 
-                // Flatten and clean data
-                const newParticipants = data.flat().filter(item => item && item.toString().trim() !== '').map(item => item.toString().trim())
+        // Allow UI to update before freezing
+        setTimeout(() => {
+            const reader = new FileReader()
+            reader.onload = (evt) => {
+                try {
+                    const bstr = evt.target.result
+                    const wb = XLSX.read(bstr, { type: 'binary' })
+                    const wsname = wb.SheetNames[0]
+                    const ws = wb.Sheets[wsname]
+                    const data = XLSX.utils.sheet_to_json(ws, { header: 1 })
 
-                if (newParticipants.length > 0) {
-                    setParticipantText(prev => {
-                        const current = prev ? prev + '\n' : ''
-                        return current + newParticipants.join('\n')
-                    })
-                    // Auto switch to view mode for large imports
-                    setIsEditing(false)
-                    alert(`${newParticipants.length} katılımcı eklendi.`)
-                } else {
-                    alert('Dosyada uygun veri bulunamadı.')
+                    // Process in chunks if needed, but for <50k rows, just optimizing the map/filter is usually enough
+                    const newParticipants = data
+                        .flat()
+                        .map(item => item ? item.toString().trim() : '')
+                        .filter(item => item !== '')
+
+                    if (newParticipants.length > 0) {
+                        setParticipantText(prev => {
+                            const current = prev ? prev + '\n' : ''
+                            return current + newParticipants.join('\n')
+                        })
+                        setIsEditing(false) // Switch to view to show the result
+                        alert(`${newParticipants.length} katılımcı başarıyla eklendi.\nListe aşağıda güncellendi.`)
+                    } else {
+                        alert('Dosyada uygun veri bulunamadı. Lütfen A sütununda verilerin olduğundan emin olun.')
+                    }
+                } catch (error) {
+                    console.error("Excel okuma hatası:", error)
+                    alert('Dosya çok büyük veya formatı bozuk. Lütfen verileri kontrol edip tekrar deneyin.')
+                } finally {
+                    setIsProcessing(false)
                 }
-            } catch (error) {
-                console.error("Excel okuma hatası:", error)
-                alert('Dosya okunurken bir hata oluştu.')
             }
-        }
-        reader.readAsBinaryString(file)
+            reader.readAsBinaryString(file)
 
-        // Reset input
-        e.target.value = null
+            // Reset input
+            e.target.value = null
+        }, 100)
     }
 
     return (
@@ -200,10 +209,11 @@ export default function Home() {
                                     <button
                                         type="button"
                                         onClick={() => fileInputRef.current?.click()}
-                                        className="p-2.5 rounded-lg bg-green-500/10 hover:bg-green-500/20 text-green-400 transition-colors border border-green-500/10"
+                                        disabled={isProcessing}
+                                        className="p-2.5 rounded-lg bg-green-500/10 hover:bg-green-500/20 text-green-400 transition-colors border border-green-500/10 disabled:opacity-50 disabled:cursor-wait"
                                         title="Excel Yükle"
                                     >
-                                        <FileSpreadsheet size={18} />
+                                        {isProcessing ? <Sparkles className="animate-spin" size={18} /> : <FileSpreadsheet size={18} />}
                                     </button>
                                     <button
                                         type="button"
