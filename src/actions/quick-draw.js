@@ -54,16 +54,31 @@ export async function createAndRunDraw(formData) {
 
         // If Manual Winner Specified
         if (manualWinnerId) {
-            const targetId = String(manualWinnerId).trim();
+            // Normalize: remove ALL whitespace (internal too) and lowercase
+            const normalize = (s) => String(s || '').replace(/\s+/g, '').toLowerCase()
+            const targetId = normalize(manualWinnerId)
 
-            // Find match with robust string comparison
-            selectedWinner = insertedParticipants.find(p =>
-                String(p.user_id).trim() === targetId ||
-                String(p.name).trim() === targetId
-            )
+            console.log(`[Manual Winner Check] Target: "${targetId}"`)
+            console.log(`[Manual Winner Check] Searching in ${insertedParticipants.length} participants...`)
+
+            // Robust search
+            selectedWinner = insertedParticipants.find(p => {
+                const pId = normalize(p.user_id)
+                const pName = normalize(p.name)
+                // Check exact normalized match
+                return pId === targetId || pName === targetId
+            })
 
             if (!selectedWinner) {
-                throw new Error(`Belirtilen kazanan (${manualWinnerId}) listede bulunamadı. Lütfen boşluksuz ve birebir aynı şekilde yazdığınızdan emin olun.`)
+                // Log first 5 for debugging purposes (visible in server logs)
+                const samples = insertedParticipants.slice(0, 5).map(p => p.user_id).join(', ')
+                console.log(`[Manual Winner Check] Failed. Samples: ${samples}`)
+
+                throw new Error(
+                    `Belirtilen kazanan (${manualWinnerId}) listede bulunamadı.\n` +
+                    `Toplam ${insertedParticipants.length.toLocaleString()} katılımcı tarandı.\n` +
+                    `Lütfen ID'nin listede (Excel'de) kesinlikle bulunduğundan emin olun.`
+                )
             }
         } else {
             // Random Winner
