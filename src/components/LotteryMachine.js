@@ -14,6 +14,12 @@ export default function LotteryMachine({ drawId, initialParticipants, winningPar
     const [participants, setParticipants] = useState(initialParticipants)
     const [showModal, setShowModal] = useState(false)
     const animationRef = useRef(null)
+    const participantsRef = useRef(initialParticipants)
+
+    // Keep ref in sync
+    useEffect(() => {
+        participantsRef.current = participants
+    }, [participants])
 
     // Ensure we don't show winner initially
     useEffect(() => {
@@ -27,10 +33,15 @@ export default function LotteryMachine({ drawId, initialParticipants, winningPar
         setIsSpinning(true)
 
         // Ensure we have enough participants for visual variance
-        if (participants.length < 10) {
+        if (participantsRef.current.length < 10) {
             try {
                 const randoms = await getRandomParticipants(drawId, 50)
-                if (randoms && randoms.length > 0) setParticipants(randoms)
+                if (randoms && randoms.length > 0) {
+                    setParticipants(randoms) // This triggers the Effect to update ref
+                    // But for the IMMEDIATE spin, we need to update ref manually or wait?
+                    // Safe hack: Update ref immediately for this cycle
+                    participantsRef.current = randoms
+                }
             } catch (e) { console.error(e) }
         }
 
@@ -40,8 +51,12 @@ export default function LotteryMachine({ drawId, initialParticipants, winningPar
         let speed = 50
 
         const spin = () => {
+            // Access via Ref to avoid closure staleness
+            const pool = participantsRef.current
+            if (!pool || pool.length === 0) return
+
             // Pick random name
-            const randomName = participants[Math.floor(Math.random() * participants.length)]?.name || '...'
+            const randomName = pool[Math.floor(Math.random() * pool.length)]?.name || '...'
             setCurrentName(randomName)
             counter++
 
@@ -59,9 +74,10 @@ export default function LotteryMachine({ drawId, initialParticipants, winningPar
     const finishDraw = async () => {
         // Reveal Visuals
         let finalWinnerData = null
+        const pool = participantsRef.current
 
         if (winningParticipantId) {
-            finalWinnerData = participants.find(p => p.id === winningParticipantId)
+            finalWinnerData = pool.find(p => p.id === winningParticipantId)
             if (!finalWinnerData) {
                 // If missing from random subset, try to find in initial list passed as prop
                 finalWinnerData = initialParticipants.find(p => p.id === winningParticipantId)
@@ -71,7 +87,7 @@ export default function LotteryMachine({ drawId, initialParticipants, winningPar
                 finalWinnerData = { name: 'KAZANAN', user_id: 'ID:' + winningParticipantId }
             }
         } else {
-            finalWinnerData = participants[Math.floor(Math.random() * participants.length)]
+            finalWinnerData = pool[Math.floor(Math.random() * pool.length)]
         }
 
         setWinner(finalWinnerData)
@@ -177,7 +193,7 @@ export default function LotteryMachine({ drawId, initialParticipants, winningPar
                             </h2>
 
                             <motion.div
-                                key={currentName} // Re-render on name change for flash effect? Or just text update.
+                                // key prop removed to prevent unmount/remount on every text change
                                 className="text-5xl md:text-7xl lg:text-8xl font-black text-white tracking-tight"
                             >
                                 {winner ? winner.name : currentName}
