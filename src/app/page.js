@@ -1,7 +1,7 @@
 'use client'
 
 import { createAndRunDraw } from '@/actions/quick-draw'
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef, useMemo, useDeferredValue } from 'react'
 import { Trophy, Users, Trash2, Shuffle, AlertCircle, Play, Sparkles, Eye, Pencil, FileText, FileSpreadsheet } from 'lucide-react'
 import * as XLSX from 'xlsx'
 
@@ -15,6 +15,9 @@ export default function Home() {
     const [isEditing, setIsEditing] = useState(true)
     const [showAdvanced, setShowAdvanced] = useState(false)
     const fileInputRef = useRef(null)
+
+    // Defer the heavy text processing to keep UI responsive
+    const deferredText = useDeferredValue(participantText)
 
     // Update count when text changes
     useEffect(() => {
@@ -239,13 +242,13 @@ export default function Home() {
                             <div className={`w-full h-full p-6 overflow-y-auto custom-scrollbar ${!isEditing ? 'block' : 'hidden'}`}>
                                 {participantText ? (
                                     <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 2xl:columns-6 gap-8 space-y-1">
-                                        {/* Memoized list to prevent INP/Lag issues */}
-                                        {useMemo(() => participantText.split(/\r?\n/).filter(l => l.trim()).map((line, i) => (
+                                        {/* Memoized & Deferred list to prevent INP/Lag issues */}
+                                        {useMemo(() => deferredText.split(/\r?\n/).filter(l => l.trim()).map((line, i) => (
                                             <div key={i} className="break-inside-avoid text-xs font-mono text-slate-400 hover:text-white py-0.5 border-b border-white/5 truncate px-2 rounded hover:bg-white/5 transition-colors">
                                                 <span className="text-slate-600 mr-2 select-none">{i + 1}.</span>
                                                 {line}
                                             </div>
-                                        )), [participantText])}
+                                        )), [deferredText])}
                                     </div>
                                 ) : (
                                     <div className="flex flex-col items-center justify-center h-full text-slate-600 gap-4">
