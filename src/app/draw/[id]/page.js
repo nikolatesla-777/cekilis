@@ -31,7 +31,8 @@ async function getDrawData(id) {
 }
 
 export default async function DrawPage({ params }) {
-    const data = await getDrawData(params.id)
+    const { id } = await params
+    const data = await getDrawData(id)
     if (!data) notFound()
 
     const { draw, participants } = data
