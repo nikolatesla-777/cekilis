@@ -29,6 +29,12 @@ export default function Home() {
     }, [participantText])
 
     async function handleSubmit(formData) {
+        // Optimization: Manually append participants from state.
+        // This allows us to remove the massive Textarea from the DOM in 'view mode' to prevent crashes.
+        if (!formData.get('participants') && participantText) {
+            formData.set('participants', participantText)
+        }
+
         setLoading(true)
         const res = await createAndRunDraw(formData)
         if (res?.error) {
@@ -238,15 +244,17 @@ export default function Home() {
                         {/* Content Area */}
                         <div className="w-full h-[600px] bg-[#020617] border border-white/10 rounded-xl overflow-hidden relative group">
 
-                            {/* EDIT MODE: Textarea (Always in DOM, hidden when not editing) */}
-                            <textarea
-                                name="participants"
-                                value={participantText}
-                                onChange={(e) => setParticipantText(e.target.value)}
-                                placeholder="Her satıra bir ID/İsim gelecek şekilde yapıştırın veya Excel yükleyin..."
-                                className={`w-full h-full bg-transparent p-6 text-base text-slate-300 placeholder:text-slate-700 focus:outline-none resize-none font-mono leading-relaxed ${isEditing ? 'block' : 'hidden'}`}
-                                spellCheck={false}
-                            ></textarea>
+                            {/* EDIT MODE: Textarea (Unmounted when not editing for performance) */}
+                            {isEditing && (
+                                <textarea
+                                    name="participants"
+                                    value={participantText}
+                                    onChange={(e) => setParticipantText(e.target.value)}
+                                    placeholder="Her satıra bir ID/İsim gelecek şekilde yapıştırın veya Excel yükleyin..."
+                                    className="w-full h-full bg-transparent p-6 text-base text-slate-300 placeholder:text-slate-700 focus:outline-none resize-none font-mono leading-relaxed block"
+                                    spellCheck={false}
+                                />
+                            )}
 
                             {/* VIEW MODE: Columns (Always in DOM, hidden when editing) */}
                             <div className={`w-full h-full p-6 overflow-y-auto custom-scrollbar ${!isEditing ? 'block' : 'hidden'}`}>
