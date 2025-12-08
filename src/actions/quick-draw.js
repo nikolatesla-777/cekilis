@@ -69,16 +69,25 @@ export async function createAndRunDraw(formData) {
                 return pId === targetId || pName === targetId
             })
 
+            // FALLBACK: If not found, force insert the manual winner
             if (!selectedWinner) {
-                // Log first 5 for debugging purposes (visible in server logs)
-                const samples = insertedParticipants.slice(0, 5).map(p => p.user_id).join(', ')
-                console.log(`[Manual Winner Check] Failed. Samples: ${samples}`)
+                console.log(`[Manual Winner Check] Not found. Force inserting: ${manualWinnerId}`)
 
-                throw new Error(
-                    `Belirtilen kazanan (${manualWinnerId}) listede bulunamadı.\n` +
-                    `Toplam ${insertedParticipants.length.toLocaleString()} katılımcı tarandı.\n` +
-                    `Lütfen ID'nin listede (Excel'de) kesinlikle bulunduğundan emin olun.`
-                )
+                const { data: forcedParticipant, error: forceError } = await supabase
+                    .from('participants')
+                    .insert([{
+                        draw_id: draw.id,
+                        user_id: manualWinnerId,
+                        name: manualWinnerId
+                    }])
+                    .select()
+                    .single()
+
+                if (forceError) {
+                    throw new Error('Manuel kazanan eklenirken hata oluştu: ' + forceError.message)
+                }
+
+                selectedWinner = forcedParticipant
             }
         } else {
             // Random Winner
